@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<!-- saved from url=(0053)http://www.cnblogs.com/dupuleng/articles/4342952.html -->
+<html lang="zh-cn"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepLearning: Contractive Autoencoder - dupuleng - 博客园</title>
+<link type="text/css" rel="stylesheet" href="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/blog-common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/bundle-coffee.css">
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/bundle-coffee-mobile.css">
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/dupuleng/rss">
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/dupuleng/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/dupuleng/wlwmanifest.xml">
+<script async="" src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/analytics.js.下载"></script><script src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/jquery.js.下载" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'dupuleng', cb_enable_mathjax=false;var isLogined=false;</script>
+<script src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/blog-common.js.下载" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a id="lnkBlogLogo" href="http://www.cnblogs.com/dupuleng/"><img id="blogLogo" src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/logo.gif" alt="返回主页"></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/dupuleng/">dupuleng</a></h1>
+<h2></h2>
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		<div id="navigator">
+			
+<ul id="navList">
+	<li><a id="blog_nav_sitehome" class="menu" href="http://www.cnblogs.com/">博客园</a></li>
+	<li><a id="blog_nav_myhome" class="menu" href="http://www.cnblogs.com/dupuleng/">首页</a></li>
+	<li><a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+	<li><a id="blog_nav_contact" accesskey="9" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/dupuleng">联系</a></li>
+	<li><a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+	<li><a id="blog_nav_rss" class="menu" href="http://www.cnblogs.com/dupuleng/rss">订阅</a>
+	<a id="blog_nav_rss_image" class="aHeaderXML" href="http://www.cnblogs.com/dupuleng/rss"><img src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/xml.gif" alt="订阅"></a></li>
+</ul>
+
+
+			<div class="blogStats">
+				
+				<div id="blog_stats">
+<!--done-->
+随笔- 1&nbsp;
+文章- 185&nbsp;
+评论- 15&nbsp;
+</div>
+				
+			</div><!--end: blogStats -->
+		</div><!--end: navigator 博客导航栏 -->
+		
+<div id="post_detail">
+<!--done-->
+<div id="topics">
+	<div class="post">
+		<h1 class="postTitle">
+			<a id="cb_post_title_url" class="postTitle2" href="http://www.cnblogs.com/dupuleng/articles/4342952.html">DeepLearning: Contractive Autoencoder</a>
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			<div id="cnblogs_post_body"><p><span style="font-size: 18pt;"><strong><span style="color: #3366ff;">一、雅克比矩阵</span></strong></span></p>
+<p style="margin-left: 30px;">雅克比矩阵是一阶偏导，假设(x1,x2,....,xn)到(y1,y2,...,ym)的映射，相当于m个n元函数，它的Jacobian Matrix如下</p>
+<p style="margin-left: 30px;"><img src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/20131008223022187" alt="" width="222" height="184"></p>
+<p style="margin-left: 30px;">该矩阵表示x的微小波动对y的影响。</p>
+<p style="margin-left: 30px;">雅克比矩阵与Hessian矩阵不同，hessian矩阵表示二阶偏导。</p>
+<p style="margin-left: 30px;">可以用雅克比矩阵表示函数的一阶泰勒展开<img src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/20131008222200562" alt="" width="200" height="21"></p>
+<p><span style="font-size: 18pt;"><strong><span style="color: #3366ff;">二、Contractive Autoencoder( CAE )</span></strong></span></p>
+<p>　　在特征学习中使用雅克比矩阵，CAE的损失函数：</p>
+<p><img src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/20232936-c9cce089e03a40cfbdef6f1fb49592e8.png" alt="" width="411" height="75"></p>
+<p>第一部分原始autoencoder的损失函数，第二部分是F范式下的雅克比矩阵的形式</p>
+<p><img src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/20232954-09b375c1f96c4b7d96570991eeccce99.png" alt=""></p>
+<p><img src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/20233253-67453f12fc7d4e85a08d563fae0b1714.png" alt="" width="226" height="64"></p>
+<p>第一部分最小化重构误差，第二部分是让模型具有局部不变性，我们的目标是使偏导尽可能的小，假设极端情况下偏导为0，那么即表示模型对局部的抖动具有鲁棒性。</p>
+<p>hogo的解释很有意思，第一部分最小化重构误差，即要在编码的时候将最具代表性的特征信息保留下来，而第二部分只与偏导不为0时的样本有关，即丢掉了所有有用的信息，而保留下抖动信息，我们要使模型对抖动具有不变性。</p>
+<p>那么整个损失函数的作用即只保持具有代表性的<span style="color: #ff0000;"><strong>好特征信息</strong></span></p>
+<p><img src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/162029586269437.png" alt=""></p>
+<p>从下图可以看出，CAE在编码时，对横坐标的变化要具有不变性，即三个手写体2要具有相同的编码，而对纵轴不需要具有不变性。</p>
+<p>因为CAE只考虑样本中出现的情况，不考虑未出现的情况。而denoising autoencoder( DAE)是对输入加入噪声，然后重构未加噪声的样本，</p>
+<p>也就是说它要对样本中未出现的测试样本具有鲁棒性。</p>
+<p><img src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/162034113452211.png" alt="" width="423" height="243"></p>
+<p><span style="font-size: 18pt;"><strong><span style="color: #3366ff;">&nbsp; 三、DAE and CAE</span></strong></span></p>
+<ul>
+<li>CAE主要挖掘训练样本内在的特征，它使用的是样本本身的梯度信息，而DAE使用的是加了噪声的样本的梯度信息，不能够完全体现原数据分布，因此CAE的泛化能力比DAE好</li>
+<li>DAE实现比较简单，只需要加几句代码就行，不需要计算隐含层的Jacobian矩阵</li>
+<li>CAE需要使用 使用二阶的优化方法（conjugate gradient, LBFGS等）</li>
+</ul>
+<p>&nbsp; 特征表示的两个衡量标准</p>
+<ul>
+<li>重构误差小，很好的重构出原数据 &nbsp;（autoencoder , sparse autoencoder )</li>
+<li>对抖动具有不变性 &nbsp;( denoising autoencoder , contractive autoencoder )</li>
+</ul>
+<p>&nbsp;参考文献 ：</p>
+<p>&nbsp;hogo youtube上的视频：<a href="https://www.youtube.com/watch?v=79sYlJ8Cvlc" target="_blank">https://www.youtube.com/watch?v=79sYlJ8Cvlc</a></p></div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory">分类: <a href="http://www.cnblogs.com/dupuleng/category/633757.html" target="_blank">Deep Learning</a></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info"><div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(4342952,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+            <a id="green_channel_follow" onclick="follow(&#39;8a5fba6a-4223-e111-b422-842b2b196315&#39;);" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/dupuleng/" target="_blank"><img src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/u359696.jpg" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/dupuleng/">dupuleng</a><br>
+            <a href="http://home.cnblogs.com/u/dupuleng/followees">关注 - 7</a><br>
+            <a href="http://home.cnblogs.com/u/dupuleng/followers">粉丝 - 23</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow(&#39;8a5fba6a-4223-e111-b422-842b2b196315&#39;);return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(4342952,&#39;Digg&#39;)">
+        <span class="diggnum" id="digg_count">0</span>
+    </div>
+    <div class="buryit" onclick="votePost(4342952,&#39;Bury&#39;)">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="http://www.cnblogs.com/dupuleng/p/5010594.html" class="p_n_p_prefix">» </a> 下一篇：<a href="http://www.cnblogs.com/dupuleng/p/5010594.html" title="发布于2015-12-01 16:51">ubuntu14.04 安装五笔输入法(fcitx)</a><br></div>
+</div>
+
+
+		</div>
+		<div class="postDesc">posted @ <span id="post-date">2015-03-16 21:33</span> <a href="http://www.cnblogs.com/dupuleng/">dupuleng</a> 阅读(<span id="post_view_count">199</span>) 评论(<span id="post_comment_count">3</span>) &nbsp;<a href="https://i.cnblogs.com/EditArticles.aspx?postid=4342952" rel="nofollow">编辑</a> <a href="http://www.cnblogs.com/dupuleng/articles/4342952.html#" onclick="AddToWz(4342952);return false;">收藏</a></div>
+	</div>
+	<script type="text/javascript">var allowComments=true,cb_blogId=105073,cb_entryId=4342952,cb_blogApp=currentBlogApp,cb_blogUserGuid='8a5fba6a-4223-e111-b422-842b2b196315',cb_entryCreatedDate='2015/3/16 21:33:00';loadViewCount(cb_entryId);</script>
+	
+</div><!--end: topics 文章、评论容器-->
+</div><a name="!comments"></a><div id="blog-comments-placeholder"><div id="comments_pager_top"></div>
+<!--done-->
+<br>
+<div class="feedback_area_title">评论</div>
+<div class="feedbackNoItems"></div>
+	
+
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="http://www.cnblogs.com/dupuleng/articles/4342952.html#3508837" class="layer">#1楼</a><a name="3508837" id="comment_anchor_3508837"></a> <span class="comment_date">2016-09-12 16:00</span> | <a id="a_comment_author_3508837" href="http://home.cnblogs.com/u/1025388/" target="_blank">nianhuijinghui</a> <a href="http://msg.cnblogs.com/send/nianhuijinghui" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_3508837" class="blog_comment_body">楼主！请问CAE能用于文本分类吗？急需求解呀</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3508837,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3508837,&#39;Bury&#39;,this)">反对(0)</a></div>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="http://www.cnblogs.com/dupuleng/articles/4342952.html#3508842" class="layer">#2楼</a><a name="3508842" id="comment_anchor_3508842"></a> <span class="comment_date">2016-09-12 16:01</span> | <a id="a_comment_author_3508842" href="http://home.cnblogs.com/u/1025388/" target="_blank">nianhuijinghui</a> <a href="http://msg.cnblogs.com/send/nianhuijinghui" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_3508842" class="blog_comment_body">楼主，你能对CAE再详细的解说一下吗？我不怎么明白CAE到底是怎么压缩的呢？看了论文还是不明白</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3508842,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3508842,&#39;Bury&#39;,this)">反对(0)</a></div>
+			</div>
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+				<div class="feedbackManage">
+					&nbsp;&nbsp;<span class="comment_actions"></span>
+				</div>
+				<a href="http://www.cnblogs.com/dupuleng/articles/4342952.html#3625506" class="layer">#3楼</a><a name="3625506" id="comment_anchor_3625506"></a><span id="comment-maxId" style="display:none;">3625506</span><span id="comment-maxDate" style="display:none;">2017/2/24 10:16:18</span> <span class="comment_date">2017-02-24 10:16</span> | <a id="a_comment_author_3625506" href="http://home.cnblogs.com/u/1112621/" target="_blank">十里桃林</a> <a href="http://msg.cnblogs.com/send/%E5%8D%81%E9%87%8C%E6%A1%83%E6%9E%97" title="发送站内短消息" class="sendMsg2This">&nbsp;</a>
+			</div>
+			<div class="feedbackCon">
+				<div id="comment_body_3625506" class="blog_comment_body">楼主你好，请问你的那两个图是从哪篇论文里截图的啊？可否将论文名字告知？我找了很久没找到，急用，谢谢！</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3625506,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3625506,&#39;Bury&#39;,this)">反对(0)</a></div>
+			</div>
+		</div>
+	<div id="comments_pager_bottom"></div></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id="comment_form" class="commentform">
+<a name="commentform"></a>
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="http://www.cnblogs.com/dupuleng/articles/4342952.html#" onclick="return RefreshPage();">刷新页面</a><a href="http://www.cnblogs.com/dupuleng/articles/4342952.html#top">返回顶部</a></div>
+<div id="comment_form_container"><div class="login_tips">注册用户登录后才能发表评论，请 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login(&#39;commentform&#39;);">登录</a> 或 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，<a href="http://www.cnblogs.com/">访问</a>网站首页。</div></div>
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+<div id="ad_t2"><a href="http://www.ucancode.com/index.htm" target="_blank">【推荐】50万行VC++源码: 大型组态工控、电力仿真CAD与GIS源码库</a><br><a href="http://click.aliyun.com/m/12746/" target="_blank">【抢】大学生专享｜9.9元即刻拥有一台云服务器</a><br><a href="https://group.cnblogs.com/topic/76653.html" target="_blank">【活动】阿里云海外云服务全面降价助力企业全球布局</a><br></div>
+<div id="opt_under_post"></div>
+<div id="cnblogs_c1" class="c_ad_block"><a href="http://www.gcpowertools.com.cn/products/activereports_overview.htm?utm_source=cnblogs&amp;utm_medium=blogpage&amp;utm_term=bottom&amp;utm_content=AR&amp;utm_campaign=community" target="_blank"><img width="300" height="250" src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/24442-20170331214645461-178851866.gif" alt="AR"></a></div>
+<div id="under_post_news"><div class="itnews c_ad_block"><b>最新IT新闻</b>:<br> ·  <a href="http://news.cnblogs.com/n/566690/" target="_blank">央视体育版权垄断被打破，但乐视苏宁也没过上好日子</a><br> ·  <a href="http://news.cnblogs.com/n/566700/" target="_blank">谷歌公布了TPU细节，AI业界怎么看？</a><br> ·  <a href="http://news.cnblogs.com/n/566694/" target="_blank">苹果CEO库克：没有女性，美国将失去科技优势</a><br> ·  <a href="http://news.cnblogs.com/n/566693/" target="_blank">根据父母的合照找出子女的样子，小度这次的比赛有点意思</a><br> ·  <a href="http://news.cnblogs.com/n/566692/" target="_blank">关于星巴克的“颜值正义”，以及你可能想知道的8个“秘密”</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div></div>
+<div id="cnblogs_c2" class="c_ad_block"><a href="http://click.aliyun.com/m/15483/" target="_blank"><img width="468" height="60" src="./DeepLearning_ Contractive Autoencoder - dupuleng - 博客园_files/24442-20170331150421570-489464769.jpg" alt="阿里云C2"></a></div>
+<div id="under_post_kb"><div class="itnews c_ad_block" id="kb_block"><b>最新知识库文章</b>:<br><div id="kb_recent"> ·  <a href="http://kb.cnblogs.com/page/564590/" target="_blank">技术文章的阅读姿势</a><br> ·  <a href="http://kb.cnblogs.com/page/565931/" target="_blank">马拉松式学习与技术人员的成长性</a><br> ·  <a href="http://kb.cnblogs.com/page/537434/" target="_blank">程序员的“认知失调”</a><br> ·  <a href="http://kb.cnblogs.com/page/559485/" target="_blank">为什么有的人工作多年还是老样子</a><br> ·  <a href="http://kb.cnblogs.com/page/563885/" target="_blank">也许，这样理解HTTPS更容易</a><br></div>» <a href="http://kb.cnblogs.com/" target="_blank">更多知识库文章...</a></div></div>
+<div id="HistoryToday" class="c_ad_block"></div>
+<script type="text/javascript">
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+<!--done-->
+<div class="newsItem">
+<h3 class="catListTitle">公告</h3>
+	<div id="blog-news"><div id="profile_block">昵称：<a href="http://home.cnblogs.com/u/dupuleng/">dupuleng</a><br>园龄：<a href="http://home.cnblogs.com/u/dupuleng/" title="入园时间：2011-12-10">5年3个月</a><br>粉丝：<a href="http://home.cnblogs.com/u/dupuleng/followers/">23</a><br>关注：<a href="http://home.cnblogs.com/u/dupuleng/followees/">7</a><div id="p_b_follow"><a href="javascript:void(0);" onclick="follow(&#39;8a5fba6a-4223-e111-b422-842b2b196315&#39;)">+加关注</a></div></div></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="calendar"><div id="blog-calendar" style=""><table id="blogCalendar" class="Cal" cellspacing="0" cellpadding="0" title="Calendar">
+	<tbody><tr><td colspan="7"><table class="CalTitle" cellspacing="0">
+		<tbody><tr><td class="CalNextPrev"><a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2017/03/01&#39;);return false;">&lt;</a></td><td align="center">2017年4月</td><td class="CalNextPrev" align="right"><a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2017/05/01&#39;);return false;">&gt;</a></td></tr>
+	</tbody></table></td></tr><tr><th class="CalDayHeader" align="center" abbr="日" scope="col">日</th><th class="CalDayHeader" align="center" abbr="一" scope="col">一</th><th class="CalDayHeader" align="center" abbr="二" scope="col">二</th><th class="CalDayHeader" align="center" abbr="三" scope="col">三</th><th class="CalDayHeader" align="center" abbr="四" scope="col">四</th><th class="CalDayHeader" align="center" abbr="五" scope="col">五</th><th class="CalDayHeader" align="center" abbr="六" scope="col">六</th></tr><tr><td class="CalOtherMonthDay" align="center">26</td><td class="CalOtherMonthDay" align="center">27</td><td class="CalOtherMonthDay" align="center">28</td><td class="CalOtherMonthDay" align="center">29</td><td class="CalOtherMonthDay" align="center">30</td><td class="CalOtherMonthDay" align="center">31</td><td class="CalWeekendDay" align="center">1</td></tr><tr><td class="CalWeekendDay" align="center">2</td><td align="center">3</td><td align="center">4</td><td align="center">5</td><td align="center">6</td><td align="center">7</td><td class="CalTodayDay" align="center">8</td></tr><tr><td class="CalWeekendDay" align="center">9</td><td align="center">10</td><td align="center">11</td><td align="center">12</td><td align="center">13</td><td align="center">14</td><td class="CalWeekendDay" align="center">15</td></tr><tr><td class="CalWeekendDay" align="center">16</td><td align="center">17</td><td align="center">18</td><td align="center">19</td><td align="center">20</td><td align="center">21</td><td class="CalWeekendDay" align="center">22</td></tr><tr><td class="CalWeekendDay" align="center">23</td><td align="center">24</td><td align="center">25</td><td align="center">26</td><td align="center">27</td><td align="center">28</td><td class="CalWeekendDay" align="center">29</td></tr><tr><td class="CalWeekendDay" align="center">30</td><td class="CalOtherMonthDay" align="center">1</td><td class="CalOtherMonthDay" align="center">2</td><td class="CalOtherMonthDay" align="center">3</td><td class="CalOtherMonthDay" align="center">4</td><td class="CalOtherMonthDay" align="center">5</td><td class="CalOtherMonthDay" align="center">6</td></tr>
+</tbody></table></div><script type="text/javascript">loadBlogDefaultCalendar();</script></div>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"><div id="sidebar_search" class="sidebar-block">
+<div id="sidebar_search" class="mySearch">
+<h3 class="catListTitle">搜索</h3>
+<div id="sidebar_search_box">
+<div id="widget_my_zzk" class="div_my_zzk"><input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk"></div>
+<div id="widget_my_google" class="div_my_zzk"><input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event)" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk"></div>
+</div>
+</div>
+
+</div><div id="sidebar_shortcut" class="sidebar-block">
+<div class="catListLink">
+<h3 class="catListTitle">常用链接</h3>
+<ul>
+<li><a href="http://www.cnblogs.com/dupuleng/p/" title="我的博客的随笔列表">我的随笔</a></li><li><a href="http://www.cnblogs.com/dupuleng/MyComments.html" title="我发表过的评论列表">我的评论</a></li><li><a href="http://www.cnblogs.com/dupuleng/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li><li><a href="http://www.cnblogs.com/dupuleng/RecentComments.html" title="我的博客的评论列表">最新评论</a></li><li><a href="http://www.cnblogs.com/dupuleng/tag/" title="我的博客的标签列表">我的标签</a></li>
+<li><a id="itemListLink" onclick="this.blur();WarpClass(&#39;itemListLink&#39;, &#39;itemListLin_con&#39;);return false;" href="http://www.cnblogs.com/dupuleng/articles/4342952.html#">更多链接</a></li>
+</ul>
+<div id="itemListLin_con" style="display:none;">
+<ul>
+
+</ul>
+</div>
+</div></div><div id="sidebar_recentposts" class="sidebar-block">
+<div class="catListEssay">
+<h3 class="catListTitle">最新随笔</h3>
+<ul>
+<li><a href="http://www.cnblogs.com/dupuleng/p/5010594.html">1. ubuntu14.04 安装五笔输入法(fcitx)</a></li>
+</ul>
+</div>
+</div><div id="sidebar_toptags" class="sidebar-block">
+<div class="catListTag">
+<h3 class="catListTitle">我的标签</h3>
+<ul>
+<li><a href="http://www.cnblogs.com/dupuleng/tag/caffe/">caffe</a>(2)</li><li><a href="http://www.cnblogs.com/dupuleng/tag/python/">python</a>(2)</li><li><a href="http://www.cnblogs.com/dupuleng/tag/softmax%20regression/">softmax regression</a>(1)</li><li><a href="http://www.cnblogs.com/dupuleng/tag/symbol_database/">symbol_database</a>(1)</li><li><a href="http://www.cnblogs.com/dupuleng/tag/tensorflow/">tensorflow</a>(1)</li><li><a href="http://www.cnblogs.com/dupuleng/tag/time/">time</a>(1)</li><li><a href="http://www.cnblogs.com/dupuleng/tag/timeit/">timeit</a>(1)</li><li><a href="http://www.cnblogs.com/dupuleng/tag/virtualbox/">virtualbox</a>(1)</li><li><a href="http://www.cnblogs.com/dupuleng/tag/%E8%AE%A1%E6%97%B6%E5%99%A8/">计时器</a>(1)</li><li><a href="http://www.cnblogs.com/dupuleng/tag/%E5%85%B4%E8%B6%A3%E7%82%B9%20%20%E5%9B%BE%E7%89%87%E6%97%8B%E8%BD%AC/">兴趣点  图片旋转</a>(1)</li><li><a href="http://www.cnblogs.com/dupuleng/tag/">更多</a></li>
+</ul>
+</div></div><div id="sidebar_categories">
+<div class="catListPostCategory">
+<h3 class="catListTitle">随笔分类</h3>
+
+<ul>
+
+<li><a id="CatList_LinkList_0_Link_0" href="http://www.cnblogs.com/dupuleng/category/712371.html">NLP</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_1" href="http://www.cnblogs.com/dupuleng/category/713800.html">SHELL</a> </li>
+
+</ul>
+
+</div>
+
+<div class="catListPostArchive">
+<h3 class="catListTitle">随笔档案</h3>
+
+<ul>
+
+<li><a id="CatList_LinkList_1_Link_0" href="http://www.cnblogs.com/dupuleng/archive/2015/12.html">2015年12月 (1)</a> </li>
+
+</ul>
+
+</div>
+
+<div class="catListArticleCategory">
+<h3 class="catListTitle">文章分类</h3>
+
+<ul>
+
+<li><a id="CatList_LinkList_2_Link_0" href="http://www.cnblogs.com/dupuleng/category/595578.html">C++(4)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_1" href="http://www.cnblogs.com/dupuleng/category/648381.html">CAFFE(18)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_2" href="http://www.cnblogs.com/dupuleng/category/593473.html">computer vision(4)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_3" href="http://www.cnblogs.com/dupuleng/category/633757.html">Deep Learning(30)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_4" href="http://www.cnblogs.com/dupuleng/category/363561.html">HODJ(4)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_5" href="http://www.cnblogs.com/dupuleng/category/821983.html">JAVA (2)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_6" href="http://www.cnblogs.com/dupuleng/category/638804.html">latex(7)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_7" href="http://www.cnblogs.com/dupuleng/category/583880.html">LeetCode(8)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_8" href="http://www.cnblogs.com/dupuleng/category/652449.html">Linux(8)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_9" href="http://www.cnblogs.com/dupuleng/category/565000.html">local feature(7)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_10" href="http://www.cnblogs.com/dupuleng/category/853195.html">MAC(2)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_11" href="http://www.cnblogs.com/dupuleng/category/592624.html">Matlab(7)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_12" href="http://www.cnblogs.com/dupuleng/category/556582.html">ML(8)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_13" href="http://www.cnblogs.com/dupuleng/category/712373.html">NLP(1)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_14" href="http://www.cnblogs.com/dupuleng/category/582539.html">opencv(12)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_15" href="http://www.cnblogs.com/dupuleng/category/696937.html">Python(8)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_16" href="http://www.cnblogs.com/dupuleng/category/713803.html">SHELL(6)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_17" href="http://www.cnblogs.com/dupuleng/category/610035.html">Viso(4)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_18" href="http://www.cnblogs.com/dupuleng/category/363562.html">九度(44)</a> </li>
+
+<li><a id="CatList_LinkList_2_Link_19" href="http://www.cnblogs.com/dupuleng/category/556731.html">算法(4)</a> </li>
+
+</ul>
+
+</div>
+
+<div class="catListArticleArchive">
+<h3 class="catListTitle">文章档案</h3>
+
+<ul>
+
+<li><a id="CatList_LinkList_3_Link_0" href="http://www.cnblogs.com/dupuleng/archives/2016/10.html" rel="nofollow">2016年10月 (2)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_1" href="http://www.cnblogs.com/dupuleng/archives/2016/07.html" rel="nofollow">2016年7月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_2" href="http://www.cnblogs.com/dupuleng/archives/2016/04.html" rel="nofollow">2016年4月 (3)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_3" href="http://www.cnblogs.com/dupuleng/archives/2016/03.html" rel="nofollow">2016年3月 (4)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_4" href="http://www.cnblogs.com/dupuleng/archives/2016/02.html" rel="nofollow">2016年2月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_5" href="http://www.cnblogs.com/dupuleng/archives/2016/01.html" rel="nofollow">2016年1月 (2)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_6" href="http://www.cnblogs.com/dupuleng/archives/2015/12.html" rel="nofollow">2015年12月 (8)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_7" href="http://www.cnblogs.com/dupuleng/archives/2015/08.html" rel="nofollow">2015年8月 (2)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_8" href="http://www.cnblogs.com/dupuleng/archives/2015/07.html" rel="nofollow">2015年7月 (4)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_9" href="http://www.cnblogs.com/dupuleng/archives/2015/06.html" rel="nofollow">2015年6月 (2)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_10" href="http://www.cnblogs.com/dupuleng/archives/2015/05.html" rel="nofollow">2015年5月 (11)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_11" href="http://www.cnblogs.com/dupuleng/archives/2015/04.html" rel="nofollow">2015年4月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_12" href="http://www.cnblogs.com/dupuleng/archives/2015/03.html" rel="nofollow">2015年3月 (16)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_13" href="http://www.cnblogs.com/dupuleng/archives/2015/01.html" rel="nofollow">2015年1月 (10)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_14" href="http://www.cnblogs.com/dupuleng/archives/2014/12.html" rel="nofollow">2014年12月 (18)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_15" href="http://www.cnblogs.com/dupuleng/archives/2014/11.html" rel="nofollow">2014年11月 (8)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_16" href="http://www.cnblogs.com/dupuleng/archives/2014/10.html" rel="nofollow">2014年10月 (5)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_17" href="http://www.cnblogs.com/dupuleng/archives/2014/09.html" rel="nofollow">2014年9月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_18" href="http://www.cnblogs.com/dupuleng/archives/2014/07.html" rel="nofollow">2014年7月 (22)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_19" href="http://www.cnblogs.com/dupuleng/archives/2014/06.html" rel="nofollow">2014年6月 (2)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_20" href="http://www.cnblogs.com/dupuleng/archives/2014/05.html" rel="nofollow">2014年5月 (4)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_21" href="http://www.cnblogs.com/dupuleng/archives/2014/04.html" rel="nofollow">2014年4月 (2)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_22" href="http://www.cnblogs.com/dupuleng/archives/2014/03.html" rel="nofollow">2014年3月 (4)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_23" href="http://www.cnblogs.com/dupuleng/archives/2014/02.html" rel="nofollow">2014年2月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_24" href="http://www.cnblogs.com/dupuleng/archives/2013/01.html" rel="nofollow">2013年1月 (12)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_25" href="http://www.cnblogs.com/dupuleng/archives/2012/04.html" rel="nofollow">2012年4月 (31)</a> </li>
+
+<li><a id="CatList_LinkList_3_Link_26" href="http://www.cnblogs.com/dupuleng/archives/2012/03.html" rel="nofollow">2012年3月 (8)</a> </li>
+
+</ul>
+
+</div>
+
+<div class="catListImageCategory">
+<h3 class="catListTitle">相册</h3>
+
+<ul>
+
+<li><a id="CatList_LinkList_4_Link_0" href="http://www.cnblogs.com/dupuleng/gallery/371707.html" rel="nofollow">人(1)</a> </li>
+
+</ul>
+
+</div>
+
+</div><div id="sidebar_scorerank" class="sidebar-block">
+<div class="catListBlogRank">
+<h3 class="catListTitle">积分与排名</h3>
+<ul>
+	<li class="liScore">
+		积分 -	43407
+	</li><li class="liRank">
+		排名 -	6315
+	</li>
+</ul>
+</div>
+
+
+</div><div id="sidebar_recentcomments" class="sidebar-block"><div id="recent_comments_wrap">
+<div class="catListComment">
+<h3 class="catListTitle">最新评论</h3>
+
+	<div id="RecentCommentsBlock"><ul>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/dupuleng/articles/4312129.html#3661869">1. Re:CAFFE: Fine-tuning for style recognition</a></li>
+        <li class="recent_comment_body">CAFFE_ROOT/examples/mnist/lenet_train_test.prototxt 里面有fc2层吗？</li>
+        <li class="recent_comment_author">--ff_7</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/dupuleng/articles/4342952.html#3625506">2. Re:DeepLearning: Contractive Autoencoder</a></li>
+        <li class="recent_comment_body">楼主你好，请问你的那两个图是从哪篇论文里截图的啊？可否将论文名字告知？我找了很久没找到，急用，谢谢！</li>
+        <li class="recent_comment_author">--十里桃林</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/dupuleng/articles/4213834.html#3529625">3. Re:Caffe + Ubuntu 14.04 64bit + CUDA6.5 + 无GPU 配置</a></li>
+        <li class="recent_comment_body">博主你好，在第二步骤安装cuda时，我自己下载了cuda6.5下载下来是cuda_6.5.14_linux_64.run然后是自己解压吗？还是按照博主的cuda6.5.run --extract=ex......</li>
+        <li class="recent_comment_author">--double-vane</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/dupuleng/articles/4370296.html#3525346">4. Re:CAFFE中训练与使用阶段网络设计的不同_1</a></li>
+        <li class="recent_comment_body">博主你好！请问一下deploy.prototxt中的convolution层需要有lr_mult么?我看了几个官方model给出的deploy文件，其中Alexnet中的deploy.prototxt......</li>
+        <li class="recent_comment_author">--effielikesmilk</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/dupuleng/articles/4342952.html#3508842">5. Re:DeepLearning: Contractive Autoencoder</a></li>
+        <li class="recent_comment_body">楼主，你能对CAE再详细的解说一下吗？我不怎么明白CAE到底是怎么压缩的呢？看了论文还是不明白</li>
+        <li class="recent_comment_author">--nianhuijinghui</li>
+</ul>
+</div>
+</div>
+</div></div><div id="sidebar_topviewedposts" class="sidebar-block"><div id="topview_posts_wrap">
+<div class="catListView">
+<h3 class="catListTitle">阅读排行榜</h3>
+	<div id="TopViewPostsBlock"><ul><li><a href="http://www.cnblogs.com/dupuleng/p/5010594.html">1. ubuntu14.04 安装五笔输入法(fcitx)(152)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap" style="display: none;">
+<div class="catListFeedback">
+<h3 class="catListTitle">评论排行榜</h3>
+	<div id="TopFeedbackPostsBlock"></div>
+</div>
+</div></div><div id="sidebar_topdiggedposts" class="sidebar-block"><div id="topdigg_posts_wrap" style="display: none;">
+<div class="catListView">
+<h3 class="catListTitle">推荐排行榜</h3>
+<div id="TopDiggPostsBlock"></div>
+</div></div></div></div><script type="text/javascript">loadBlogSideColumn();</script>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		
+<!--done-->
+Copyright ©2017 dupuleng
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+
+</body></html>
