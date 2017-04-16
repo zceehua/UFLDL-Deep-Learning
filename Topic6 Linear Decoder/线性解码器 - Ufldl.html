@@ -1,0 +1,285 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- saved from url=(0086)http://ufldl.stanford.edu/wiki/index.php/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8 -->
+<html lang="en" dir="ltr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>线性解码器 - Ufldl</title>
+
+<meta name="generator" content="MediaWiki 1.16.2">
+<link rel="shortcut icon" href="http://ufldl.stanford.edu/favicon.ico">
+<link rel="search" type="application/opensearchdescription+xml" href="http://ufldl.stanford.edu/wiki/opensearch_desc.php" title="Ufldl (en)">
+<link rel="alternate" type="application/atom+xml" title="Ufldl Atom feed" href="http://ufldl.stanford.edu/wiki/index.php?title=Special:RecentChanges&amp;feed=atom">
+<link rel="stylesheet" href="./线性解码器 - Ufldl_files/shared.css" media="screen">
+<link rel="stylesheet" href="./线性解码器 - Ufldl_files/commonPrint.css" media="print">
+<link rel="stylesheet" href="./线性解码器 - Ufldl_files/main.css" media="screen">
+<!--[if lt IE 5.5000]><link rel="stylesheet" href="/wiki/skins/monobook/IE50Fixes.css?270" media="screen" /><![endif]-->
+<!--[if IE 5.5000]><link rel="stylesheet" href="/wiki/skins/monobook/IE55Fixes.css?270" media="screen" /><![endif]-->
+<!--[if IE 6]><link rel="stylesheet" href="/wiki/skins/monobook/IE60Fixes.css?270" media="screen" /><![endif]-->
+<!--[if IE 7]><link rel="stylesheet" href="/wiki/skins/monobook/IE70Fixes.css?270" media="screen" /><![endif]-->
+<link rel="stylesheet" href="./线性解码器 - Ufldl_files/index.php">
+<link rel="stylesheet" href="./线性解码器 - Ufldl_files/index(1).php" media="print">
+<link rel="stylesheet" href="./线性解码器 - Ufldl_files/index(2).php">
+<link rel="stylesheet" href="./线性解码器 - Ufldl_files/index(3).php">
+<script>
+var skin="monobook",
+stylepath="/wiki/skins",
+wgUrlProtocols="http\\:\\/\\/|https\\:\\/\\/|ftp\\:\\/\\/|irc\\:\\/\\/|gopher\\:\\/\\/|telnet\\:\\/\\/|nntp\\:\\/\\/|worldwind\\:\\/\\/|mailto\\:|news\\:|svn\\:\\/\\/",
+wgArticlePath="/wiki/index.php/$1",
+wgScriptPath="/wiki",
+wgScriptExtension=".php",
+wgScript="/wiki/index.php",
+wgVariantArticlePath=false,
+wgActionPaths={},
+wgServer="http://ufldl.stanford.edu",
+wgCanonicalNamespace="",
+wgCanonicalSpecialPageName=false,
+wgNamespaceNumber=0,
+wgPageName="线性解码器",
+wgTitle="线性解码器",
+wgAction="view",
+wgArticleId=490,
+wgIsArticle=true,
+wgUserName=null,
+wgUserGroups=null,
+wgUserLanguage="en",
+wgContentLanguage="en",
+wgBreakFrames=false,
+wgCurRevisionId=2345,
+wgVersion="1.16.2",
+wgEnableAPI=true,
+wgEnableWriteAPI=true,
+wgSeparatorTransformTable=["", ""],
+wgDigitTransformTable=["", ""],
+wgMainPageTitle="Main Page",
+wgFormattedNamespaces={"-2": "Media", "-1": "Special", "0": "", "1": "Talk", "2": "User", "3": "User talk", "4": "Ufldl", "5": "Ufldl talk", "6": "File", "7": "File talk", "8": "MediaWiki", "9": "MediaWiki talk", "10": "Template", "11": "Template talk", "12": "Help", "13": "Help talk", "14": "Category", "15": "Category talk"},
+wgNamespaceIds={"media": -2, "special": -1, "": 0, "talk": 1, "user": 2, "user_talk": 3, "ufldl": 4, "ufldl_talk": 5, "file": 6, "file_talk": 7, "mediawiki": 8, "mediawiki_talk": 9, "template": 10, "template_talk": 11, "help": 12, "help_talk": 13, "category": 14, "category_talk": 15, "image": 6, "image_talk": 7},
+wgSiteName="Ufldl",
+wgCategories=[],
+wgRestrictionEdit=[],
+wgRestrictionMove=[];
+</script><script src="./线性解码器 - Ufldl_files/wikibits.js.下载"></script>
+<script src="./线性解码器 - Ufldl_files/ajax.js.下载"></script>
+<script src="./线性解码器 - Ufldl_files/index(4).php"></script>
+
+</head>
+<body class="mediawiki ltr ns-0 ns-subject page-线性解码器 skin-monobook">
+<div id="globalWrapper">
+<div id="column-content"><div id="content">
+	<a id="top"></a>
+	
+	<h1 id="firstHeading" class="firstHeading">线性解码器</h1>
+	<div id="bodyContent">
+		<h3 id="siteSub">From Ufldl</h3>
+		<div id="contentSub"></div>
+		<div id="jump-to-nav">Jump to: <a href="http://ufldl.stanford.edu/wiki/index.php/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8#column-one">navigation</a>, <a href="http://ufldl.stanford.edu/wiki/index.php/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8#searchInput">search</a></div>
+		<!-- start content -->
+<table id="toc" class="toc"><tbody><tr><td><div id="toctitle"><h2>Contents</h2> <span class="toctoggle">[<a id="togglelink" class="internal" href="javascript:toggleToc()">hide</a>]</span></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="http://ufldl.stanford.edu/wiki/index.php/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8#.E7.A8.80.E7.96.8F.E8.87.AA.E7.BC.96.E7.A0.81.E9.87.8D.E8.BF.B0"><span class="tocnumber">1</span> <span class="toctext">稀疏自编码重述</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="http://ufldl.stanford.edu/wiki/index.php/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8#.E7.BA.BF.E6.80.A7.E8.A7.A3.E7.A0.81.E5.99.A8"><span class="tocnumber">2</span> <span class="toctext">线性解码器</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="http://ufldl.stanford.edu/wiki/index.php/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8#.E4.B8.AD.E8.8B.B1.E6.96.87.E5.AF.B9.E7.85.A7"><span class="tocnumber">3</span> <span class="toctext">中英文对照</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="http://ufldl.stanford.edu/wiki/index.php/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8#.E4.B8.AD.E6.96.87.E8.AF.91.E8.80.85"><span class="tocnumber">4</span> <span class="toctext">中文译者</span></a></li>
+</ul>
+</td></tr></tbody></table><script>if (window.showTocToggle) { var tocShowText = "show"; var tocHideText = "hide"; showTocToggle(); } </script>
+<h2> <span class="mw-headline" id=".E7.A8.80.E7.96.8F.E8.87.AA.E7.BC.96.E7.A0.81.E9.87.8D.E8.BF.B0"> 稀疏自编码重述 </span></h2>
+<p>稀疏自编码器包含3层神经元，分别是输入层，隐含层以及输出层。
+从前面（神经网络）自编码器描述可知，位于神经网络中的神经元都采用相同的激励函数。
+在注解中，我们修改了自编码器定义，使得某些神经元采用不同的激励函数。这样得到的模型更容易应用，而且模型对参数的变化也更为鲁棒。
+</p><p><br>
+回想一下，输出层神经元计算公式如下：
+</p><p><img class="tex" alt="
+\begin{align}
+z^{(3)} &amp;= W^{(2)} a^{(2)} + b^{(2)} \\
+a^{(3)} &amp;= f(z^{(3)})
+\end{align}
+" src="./线性解码器 - Ufldl_files/9570514e4c49fb8fe34abba34b0700b1.png">
+</p><p>其中 <span class="texhtml"><i>a</i><sup>(3)</sup></span> 是输出. 在自编码器中, <span class="texhtml"><i>a</i><sup>(3)</sup></span> 近似重构了输入 <span class="texhtml"><i>x</i> = <i>a</i><sup>(1)</sup></span>。
+</p><p><br>
+S 型激励函数输出范围是 <span class="texhtml">[0,1]</span>，当 <span class="texhtml"><i>f</i>(<i>z</i><sup>(3)</sup>)</span> 采用该激励函数时，就要对输入限制或缩放，使其位于 <span class="texhtml">[0,1]</span> 范围中。一些数据集，比如 MNIST，能方便将输出缩放到 [0,1] 中，但是很难满足对输入值的要求。比如， PCA 白化处理的输入并不满足 <span class="texhtml">[0,1]</span> 范围要求，也不清楚是否有最好的办法可以将数据缩放到特定范围中。
+</p><p><br>
+</p>
+<h2> <span class="mw-headline" id=".E7.BA.BF.E6.80.A7.E8.A7.A3.E7.A0.81.E5.99.A8"> 线性解码器 </span></h2>
+<p>设定 <span class="texhtml"><i>a</i><sup>(3)</sup> = <i>z</i><sup>(3)</sup></span> 可以很简单的解决上述问题。从形式上来看，就是输出端使用恒等函数 <span class="texhtml"><i>f</i>(<i>z</i>) = <i>z</i></span> 作为激励函数，于是有 <span class="texhtml"><i>a</i><sup>(3)</sup> = <i>f</i>(<i>z</i><sup>(3)</sup>) = <i>z</i><sup>(3)</sup></span>。我们称该特殊的激励函数为 <b>线性激励函数 </b>（称为恒等激励函数可能更好些）。
+</p><p>需要注意，神经网络中隐含层的神经元依然使用S型（或者tanh）激励函数。这样隐含单元的激励公式为 <img class="tex" alt="\textstyle a^{(2)} = \sigma(W^{(1)}x + b^{(1)})" src="./线性解码器 - Ufldl_files/8e3c4f24762c1b95ca2e7d989870a6c7.png">&nbsp;,其中 <img class="tex" alt="\sigma(\cdot)" src="./线性解码器 - Ufldl_files/8be99f6016f333abbed2696126611fc2.png">&nbsp;是 S 型函数,&nbsp;<span class="texhtml"><i>x</i></span>&nbsp;是输入, <span class="texhtml"><i>W</i><sup>(1)</sup></span>&nbsp;和 <span class="texhtml"><i>b</i><sup>(1)</sup></span>&nbsp;分别是隐单元的权重和偏差项。我们仅在输出层中使用线性激励函数。
+</p><p>一个 S 型或 tanh 隐含层以及线性输出层构成的自编码器，我们称为<b>线性解码器</b>。
+</p><p>在这个线性解码器模型中，<img class="tex" alt="\hat{x} = a^{(3)} = z^{(3)} = W^{(2)}a + b^{(2)}" src="./线性解码器 - Ufldl_files/c8f74a340290cdf07c78ac17a0af7b70.png">。因为输出 <img class="tex" alt="\hat{x} " src="./线性解码器 - Ufldl_files/8baf9dc7043aae61e37e171dc9f537e9.png"> 是隐单元激励输出的线性函数，改变 <span class="texhtml"><i>W</i><sup>(2)</sup></span> ，可以使输出值 <span class="texhtml"><i>a</i><sup>(3)</sup></span> 大于 1 或者小于 0。这使得我们可以用实值输入来训练稀疏自编码器，避免预先缩放样本到给定范围。
+</p><p>随着输出单元的激励函数的改变，这个输出单元梯度也相应变化。回顾之前每一个输出单元误差项定义为：
+</p>
+<dl><dd><img class="tex" alt="
+\begin{align}
+\delta_i^{(3)}
+= \frac{\partial}{\partial z_i} \;\;
+        \frac{1}{2} \left\|y - \hat{x}\right\|^2 = - (y_i - \hat{x}_i) \cdot f&#39;(z_i^{(3)})
+\end{align}
+" src="./线性解码器 - Ufldl_files/cf0aa3a41ce16db8a53854e6fe751d4f.png">
+</dd></dl>
+<p>其中 <span class="texhtml"><i>y</i> = <i>x</i></span> 是所期望的输出,&nbsp;<img class="tex" alt="\hat{x}" src="./线性解码器 - Ufldl_files/8baf9dc7043aae61e37e171dc9f537e9.png">&nbsp;是自编码器的输出, <img class="tex" alt="f(\cdot)" src="./线性解码器 - Ufldl_files/a1044326f95cfbf46f9859c97cf280be.png">&nbsp;&nbsp;是激励函数.因为在输出层激励函数为 <span class="texhtml"><i>f</i>(<i>z</i>) = <i>z</i></span>, 这样&nbsp;<span class="texhtml"><i>f</i>'(<i>z</i>) = 1</span>，所以上述公式可以简化为
+</p>
+<dl><dd><img class="tex" alt="
+\begin{align}
+\delta_i^{(3)} = - (y_i - \hat{x}_i)
+\end{align}
+" src="./线性解码器 - Ufldl_files/b41a77713e3497581a691ea4be158037.png">
+</dd></dl>
+<p><br>
+当然，若使用反向传播算法来计算隐含层的误差项时:
+</p>
+<dl><dd><img class="tex" alt="
+\begin{align}
+\delta^{(2)} &amp;= \left( (W^{(2)})^T\delta^{(3)}\right) \bullet f&#39;(z^{(2)})
+\end{align}
+" src="./线性解码器 - Ufldl_files/37e5f0d83c10a8e923467fb72eee56e0.png"> 
+</dd></dl>
+<p>因为隐含层采用一个 S 型（或 tanh）的激励函数 <span class="texhtml"><i>f</i></span>,在上述公式中，<img class="tex" alt="f&#39;(\cdot)" src="./线性解码器 - Ufldl_files/ff62381ad386ec3826477d743df34b6c.png"> 依然是 S 型（或 tanh）函数的导数。
+</p><p><br>
+</p>
+<h2> <span class="mw-headline" id=".E4.B8.AD.E8.8B.B1.E6.96.87.E5.AF.B9.E7.85.A7">中英文对照</span></h2>
+<dl><dd>线性解码器	Linear Decoders
+</dd></dl>
+<dl><dd>稀疏自编码	Sparse Autoencoder
+</dd></dl>
+<dl><dd>输入层		input layer
+</dd></dl>
+<dl><dd>隐含层		hidden layer
+</dd></dl>
+<dl><dd>输出层		output layer
+</dd></dl>
+<dl><dd>神经元		neuron
+</dd></dl>
+<dl><dd>神经网络 	neural network
+</dd></dl>
+<dl><dd>自编码器 	autoencoder
+</dd></dl>
+<dl><dd>激励函数	activation function
+</dd></dl>
+<dl><dd>鲁棒            robust
+</dd></dl>
+<dl><dd>S型激励函数     sigmoid activation function
+</dd></dl>
+<dl><dd>tanh激励函数    tanh function
+</dd></dl>
+<dl><dd>线性激励函数	linear activation function
+</dd></dl>
+<dl><dd>恒等激励函数    identity activation function
+</dd></dl>
+<dl><dd>隐单元          hidden unit
+</dd></dl>
+<dl><dd>权重	        weight
+</dd></dl>
+<dl><dd>偏差项          error term
+</dd></dl>
+<dl><dd>反向传播算法    backpropagation
+</dd></dl>
+<p><br>
+</p>
+<h2> <span class="mw-headline" id=".E4.B8.AD.E6.96.87.E8.AF.91.E8.80.85">中文译者</span></h2>
+<p>严晓东（yan.endless@gmail.com），姚涛（yaothinker@gmail.com），晓风（xiaofeng.zhb@alibaba-inc.com）
+</p><p><br>
+</p>
+<div style="text-align: center;font-size:small;background-color: #eeeeee; border-style: solid; border-width: 1px; padding: 5px">
+<p><strong class="selflink">线性解码器</strong> | <a href="http://ufldl.stanford.edu/wiki/index.php/Exercise:Learning_color_features_with_Sparse_Autoencoders" title="Exercise:Learning color features with Sparse Autoencoders">Exercise:Learning color features with Sparse Autoencoders</a>
+</p>
+</div>
+<p><br>
+</p>
+<div style="text-align: left;font-size:small;background-color: #eeeeee; border-style: solid; border-width: 1px; padding: 5px">
+<p>Language&nbsp;: <a href="http://ufldl.stanford.edu/wiki/index.php/Linear_Decoders" title="Linear Decoders">English</a>
+</p>
+</div>
+
+<!-- 
+NewPP limit report
+Preprocessor node count: 294/1000000
+Post-expand include size: 391/2097152 bytes
+Template argument size: 22/2097152 bytes
+Expensive parser function count: 0/100
+-->
+
+<!-- Saved in parser cache with key wikidb:pcache:idhash:490-0!1!0!!en!2!edit=0 and timestamp 20161212111243 -->
+<div class="printfooter">
+Retrieved from "<a href="http://ufldl.stanford.edu/wiki/index.php/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8">http://ufldl.stanford.edu/wiki/index.php/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8</a>"</div>
+		<div id="catlinks" class="catlinks catlinks-allhidden"></div>		<!-- end content -->
+				<div class="visualClear"></div>
+	</div>
+</div></div>
+<div id="column-one">
+	<div id="p-cactions" class="portlet">
+		<h5>Views</h5>
+		<div class="pBody">
+			<ul>
+				 <li id="ca-nstab-main" class="selected"><a href="http://ufldl.stanford.edu/wiki/index.php/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8" title="View the content page [alt-c]" accesskey="c">Page</a></li>
+				 <li id="ca-talk" class="new"><a href="http://ufldl.stanford.edu/wiki/index.php?title=Talk:%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8&amp;action=edit&amp;redlink=1" title="Discussion about the content page [alt-t]" accesskey="t">Discussion</a></li>
+				 <li id="ca-viewsource"><a href="http://ufldl.stanford.edu/wiki/index.php?title=%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8&amp;action=edit" title="This page is protected.
+You can view its source [alt-e]" accesskey="e">View source</a></li>
+				 <li id="ca-history"><a href="http://ufldl.stanford.edu/wiki/index.php?title=%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8&amp;action=history" title="Past revisions of this page [alt-h]" accesskey="h">History</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="portlet" id="p-personal">
+		<h5>Personal tools</h5>
+		<div class="pBody">
+			<ul>
+				<li id="pt-login"><a href="http://ufldl.stanford.edu/wiki/index.php?title=Special:UserLogin&amp;returnto=%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8" title="You are encouraged to log in; however, it is not mandatory [alt-o]" accesskey="o">Log in</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="portlet" id="p-logo">
+		<a style="background-image: url(/wiki/skins/common/images/dolphin-openclipart.png);" href="http://ufldl.stanford.edu/wiki/index.php/Main_Page" title="Visit the main page"></a>
+	</div>
+	<script type="text/javascript"> if (window.isMSIE55) fixalpha(); </script>
+	<div class="generated-sidebar portlet" id="p-ufldl_resources">
+		<h5>ufldl resources</h5>
+		<div class="pBody">
+			<ul>
+				<li id="n-UFLDL-Tutorial"><a href="http://ufldl.stanford.edu/wiki/index.php/UFLDL_Tutorial">UFLDL Tutorial</a></li>
+				<li id="n-Recommended-Readings"><a href="http://ufldl.stanford.edu/wiki/index.php/UFLDL_Recommended_Readings">Recommended Readings</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="generated-sidebar portlet" id="p-wiki">
+		<h5>wiki</h5>
+		<div class="pBody">
+			<ul>
+				<li id="n-mainpage-description"><a href="http://ufldl.stanford.edu/wiki/index.php/Main_Page" title="Visit the main page [alt-z]" accesskey="z">Main page</a></li>
+				<li id="n-recentchanges"><a href="http://ufldl.stanford.edu/wiki/index.php/Special:RecentChanges" title="The list of recent changes in the wiki [alt-r]" accesskey="r">Recent changes</a></li>
+				<li id="n-randompage"><a href="http://ufldl.stanford.edu/wiki/index.php/Special:Random" title="Load a random page [alt-x]" accesskey="x">Random page</a></li>
+				<li id="n-help"><a href="http://ufldl.stanford.edu/wiki/index.php/Help:Contents" title="The place to find out">Help</a></li>
+			</ul>
+		</div>
+	</div>
+	<div id="p-search" class="portlet">
+		<h5><label for="searchInput">Search</label></h5>
+		<div id="searchBody" class="pBody">
+			<form action="http://ufldl.stanford.edu/wiki/index.php" id="searchform">
+				<input type="hidden" name="title" value="Special:Search">
+				<input id="searchInput" title="Search Ufldl" accesskey="f" type="search" name="search">
+				<input type="submit" name="go" class="searchButton" id="searchGoButton" value="Go" title="Go to a page with this exact name if exists">&nbsp;
+				<input type="submit" name="fulltext" class="searchButton" id="mw-searchButton" value="Search" title="Search the pages for this text">
+			</form>
+		</div>
+	</div>
+	<div class="portlet" id="p-tb">
+		<h5>Toolbox</h5>
+		<div class="pBody">
+			<ul>
+				<li id="t-whatlinkshere"><a href="http://ufldl.stanford.edu/wiki/index.php/Special:WhatLinksHere/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8" title="List of all wiki pages that link here [alt-j]" accesskey="j">What links here</a></li>
+				<li id="t-recentchangeslinked"><a href="http://ufldl.stanford.edu/wiki/index.php/Special:RecentChangesLinked/%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8" title="Recent changes in pages linked from this page [alt-k]" accesskey="k">Related changes</a></li>
+<li id="t-specialpages"><a href="http://ufldl.stanford.edu/wiki/index.php/Special:SpecialPages" title="List of all special pages [alt-q]" accesskey="q">Special pages</a></li>
+				<li id="t-print"><a href="http://ufldl.stanford.edu/wiki/index.php?title=%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8&amp;printable=yes" rel="alternate" title="Printable version of this page [alt-p]" accesskey="p">Printable version</a></li>				<li id="t-permalink"><a href="http://ufldl.stanford.edu/wiki/index.php?title=%E7%BA%BF%E6%80%A7%E8%A7%A3%E7%A0%81%E5%99%A8&amp;oldid=2345" title="Permanent link to this revision of the page">Permanent link</a></li>			</ul>
+		</div>
+	</div>
+</div><!-- end of the left (by default at least) column -->
+<div class="visualClear"></div>
+<div id="footer">
+	<div id="f-poweredbyico"><a href="http://www.mediawiki.org/"><img src="./线性解码器 - Ufldl_files/poweredby_mediawiki_88x31.png" height="31" width="88" alt="Powered by MediaWiki"></a></div>
+	<ul id="f-list">
+		<li id="lastmod"> This page was last modified on 8 April 2013, at 05:18.</li>
+		<li id="viewcount">This page has been accessed 27,650 times.</li>
+		<li id="privacy"><a href="http://ufldl.stanford.edu/wiki/index.php/Ufldl:Privacy_policy" title="Ufldl:Privacy policy">Privacy policy</a></li>
+		<li id="about"><a href="http://ufldl.stanford.edu/wiki/index.php/Ufldl:About" title="Ufldl:About">About Ufldl</a></li>
+		<li id="disclaimer"><a href="http://ufldl.stanford.edu/wiki/index.php/Ufldl:General_disclaimer" title="Ufldl:General disclaimer">Disclaimers</a></li>
+	</ul>
+</div>
+</div>
+
+<script>if (window.runOnloadHook) runOnloadHook();</script>
+<!-- Served in 0.154 secs. -->
+</body></html>
