@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<!-- saved from url=(0066)http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html -->
+<html lang="zh-cn"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep learning：三十五(用NN实现数据降维练习) - tornadomeet - 博客园</title>
+<link type="text/css" rel="stylesheet" href="./用NN实现数据降维练习_files/blog-common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="./用NN实现数据降维练习_files/bundle-sea.css">
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="./用NN实现数据降维练习_files/bundle-sea-mobile.css">
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/tornadomeet/rss">
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/tornadomeet/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/tornadomeet/wlwmanifest.xml">
+<script type="text/javascript" src="./用NN实现数据降维练习_files/encoder.js.下载"></script><script src="./用NN实现数据降维练习_files/jquery.js.下载" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'tornadomeet', cb_enable_mathjax=false;var isLogined=false;</script>
+<script src="./用NN实现数据降维练习_files/blog-common.js.下载" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<!--done-->
+<div id="header">
+	
+<!--done-->
+<div class="header">
+	<div class="headerText">
+		<a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/tornadomeet/">tornadomeet</a><br>
+		
+	</div>
+</div>
+
+</div>
+
+<div id="mytopmenu">
+	
+		<div id="mylinks"><a id="blog_nav_sitehome" class="menu" href="http://www.cnblogs.com/">博客园</a> &nbsp;
+<a id="blog_nav_myhome" class="menu" href="http://www.cnblogs.com/tornadomeet/">首页</a> &nbsp;
+<a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a> &nbsp;
+<a id="blog_nav_contact" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/tornadomeet">联系</a> &nbsp;
+<a id="blog_nav_rss" class="menu" href="http://www.cnblogs.com/tornadomeet/rss">订阅</a><a id="blog_nav_rss_image" href="http://www.cnblogs.com/tornadomeet/rss"><img src="./用NN实现数据降维练习_files/xml.gif" alt="订阅"></a>&nbsp;
+<a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a>
+</div>
+		<div id="mystats"><div id="blog_stats">
+随笔-252&nbsp;
+评论-2165&nbsp;
+文章-0&nbsp;
+<!--trackbacks-0-->
+</div></div>
+	
+</div>
+<div id="centercontent">
+	
+<div id="post_detail">
+<div class="post">
+	<h1 class="postTitle"><a id="cb_post_title_url" class="postTitle2" href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html">Deep learning：三十五(用NN实现数据降维练习)</a></h1>
+	<div id="cnblogs_post_body"><p>&nbsp;</p>
+<p>　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">前言：</span></strong></span></p>
+<p>　　本文是针对上篇博文<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html"><strong>Deep learning</strong><strong>：三十四(</strong><strong>用NN</strong><strong>实现数据的降维)</strong></a>的练习部分，也就是Hition大牛science文章reducing the dimensionality of data with neural networks的code部分，其code下载见：<a href="http://www.cs.toronto.edu/~hinton/MatlabForSciencePaper.html">http://www.cs.toronto.edu/~hinton/MatlabForSciencePaper.html</a>。花了点时间阅读并运行了下它的code，其实code主要是2个单独的工程。一个只是用MNIST数据库来进行深度的autoencoder压缩，用的是无监督学习，评价标准是重构误差值MSE。另一个工程是MNIST的手写字体识别，网络的预训练部分用的是无监督的，网络的微调部分用的是有监督的。评价标准准是识别率或者错误率。</p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">MINST降维实验：</span></strong></span></p>
+<p>　　本次是训练4个隐含层的autoencoder深度网络结构，输入层维度为784维，4个隐含层维度分别为1000,500,250,30。整个网络权值的获得流程梳理如下：</p>
+<ol>
+<li>首先训练第一个rbm网络，即输入层784维和第一个隐含层1000维构成的网络。采用的方法是rbm优化，这个过程用的是训练样本，优化完毕后，计算训练样本在隐含层的输出值。</li>
+<li>利用1中的结果作为第2个rbm网络训练的输入值，同样用rbm网络来优化第2个rbm网络，并计算出网络的输出值。并且用同样的方法训练第3个rbm网络和第4个rbm网络。</li>
+<li>将上面4个rbm网络展开连接成新的网络，且分成encoder和decoder部分。并用步骤1和2得到的网络值给这个新网络赋初值。</li>
+<li>由于新网络中最后的输出和最初的输入节点数是相同的，所以可以将最初的输入值作为网络理论的输出标签值，然后采用BP算法计算网络的代价函数和代价函数的偏导数。</li>
+<li>利用步骤3的初始值和步骤4的代价值和偏导值，采用共轭梯度下降法优化整个新网络，得到最终的网络权值。以上整个过程都是无监督的。</li>
+</ol>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 16px;"><strong><span style="color: #0000ff;">一些matlab函数：</span></strong></span></p>
+<p>　　<em><strong><span style="color: #3366ff;">rem和mod:</span></strong></em></p>
+<p>　　参考资料<strong><a href="http://www.cnblogs.com/xfzhang/archive/2010/11/25/1887214.html">取模（mod）与取余（rem）的区别——Matlab学习笔记</a></strong></p>
+<p>　　通常取模运算也叫取余运算，它们返回结果都是余数.rem和mod唯一的区别在于:<br>
+　　当x和y的正负号一样的时候，两个函数结果是等同的；当x和y的符号不同时，rem函数结果的符号和x的一样，而mod和y一样。这是由于这两个函数的生成机制不同，rem函数采用fix函数，而mod函数采用了floor函数（这两个函数是用来取整的，fix函数向0方向舍入，floor函数向无穷小方向舍入）。rem（x，y）命令返回的是x-n.*y，如果y不等于0，其中的n = fix(x./y)，而mod(x,y)返回的是x-n.*y，当y不等于0时，n=floor(x./y)</p>
+<p>　　<span style="font-size: 16px;"><strong><span style="color: #0000ff;">工程中的m文件：</span></strong></span></p>
+<p>　　<em><strong><span style="color: #3366ff;">converter.m:</span></strong></em></p>
+<p>　　实现的功能是将样本集从.ubyte格式转换成.ascii格式，然后继续转换成.mat格式。</p>
+<p>　　<em><strong><span style="color: #3366ff;">makebatches.m:</span></strong></em></p>
+<p>　　实现的是将原本的2维数据集变成3维的，因为分了多个批次，另外1维表示的是批次。</p>
+<p>　　下面来看下在程序中大致实现RBM权值的优化步骤（假设是一个2层的RBM网络，即只有输入层和输出层，且这两层上的变量是二值变量）：</p>
+<ol>
+<li>随机给网络初始化一个权值矩阵w和偏置向量b。</li>
+<li>对可视层输入矩阵v正向传播，计算出隐含层的输出矩阵h，并计算出输入v和h对应节点乘积的均值矩阵</li>
+<li>此时2中的输出h为概率值，将它随机01化为二值变量。</li>
+<li>利用3中01化了的h方向传播计算出可视层的矩阵v’.(按照道理，这个v'应该是要01化的)</li>
+<li>对v’进行正向传播计算出隐含层的矩阵h’，并计算出v’和h’对应节点乘积的均值矩阵。</li>
+<li>用2中得到的均值矩阵减掉5中得到的均值矩阵，其结果作为对应权值增量的矩阵。</li>
+<li>结合其对应的学习率，利用权值迭代公式对权值进行迭代。</li>
+<li>重复计算2到7，直至收敛。</li>
+
+
+
+
+
+
+</ol>
+<p>　　偏置值的优化步骤：</p>
+<ol>
+<li>随机给网络初始化一个权值矩阵w和偏置向量b。</li>
+<li>对可视层输入矩阵v正向传播，计算出隐含层的输出矩阵h，并计算v层样本的均值向量以及h层的均值向量。</li>
+<li>此时2中的输出h为概率值，将它随机01化为二值变量。</li>
+<li>利用3中01化了的h方向传播计算出可视层的矩阵v’.</li>
+<li>对v’进行正向传播计算出隐含层的矩阵h’，
+并计算v‘层样本的均值向量以及h’层的均值向量。</li>
+<li>用2中得到的v方均值向量减掉5中得到的v’方的均值向量，其结果作为输入层v对应偏置的增值向量。用2中得到的h方均值向量减掉5中得到的h’方的均值向量，其结果作为输入层h对应偏置的增值向量。</li>
+<li>结合其对应的学习率，利用权值迭代公式对偏置值进行迭代。</li>
+<li>重复计算2到7，直至收敛。</li>
+
+
+
+
+
+
+</ol>
+<p>　　当然了，权值更新和偏置值更新每次迭代都是同时进行的，所以应该是同时收敛的。并且在权值更新公式也可以稍微作下变形，比如加入momentum变量，即本次权值更新的增量会保留一部分上次更新权值的增量值。</p>
+<p>　　函数CG_MNIST形式如下：</p>
+<p>　　<em><strong><span style="color: #3366ff;">function [f, df] = CG_MNIST(VV,Dim,XX);</span></strong></em></p>
+<p>　　该函数实现的功能是计算网络代价函数值f，以及f对网络中各个参数值的偏导数df，权值和偏置值是同时处理。其中参数VV为网络中所有参数构成的列向量，参数Dim为每层网络的节点数构成的向量，XX为训练样本集合。f和df分别表示网络的代价函数和偏导函数值。&nbsp;</p>
+<p>　　共轭梯度下降的优化函数形式为：</p>
+<p>　　<em><strong><span style="color: #3366ff;">[X, fX, i] = minimize(X, f, length, P1, P2,
+P3, ... )</span></strong></em></p>
+<p>　　该函数时使用共轭梯度的方法来对参数X进行优化，所以X是网络的参数值，为一个列向量。f是一个函数的名称，它主要是用来计算网络中的代价函数以及代价函数对各个参数X的偏导函数，f的参数值分别为X，以及minimize函数后面的P1,P2,P3,…使用共轭梯度法进行优化的最大线性搜索长度为length。返回值X为找到的最优参数，fX为在此最优参数X下的代价函数，i为线性搜索的长度（即迭代的次数）。</p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 16px;"><strong><span style="color: #0000ff;">实验结果：</span></strong></span></p>
+<p>　　由于在实验过程中，作者将迭代次数设置为200，本人在实验时发现迭代到35次时已经花了6个多小时，所以懒得等那么久了（需长达30多个小时），此时的原始数字和重构数字显示如下：</p>
+<p>&nbsp;　　<img src="./用NN实现数据降维练习_files/30195432-17fd2a6c9fc24672be041b6b4ecdb6fe.png" alt=""></p>
+<p>　　均方误差结果为：</p>
+<p>　　Train squared error:&nbsp; <strong><span style="color: #ff0000;">4.318 </span></strong></p>
+<p>　　Test squared error:&nbsp; <strong><span style="color: #ff0000;">4.520</span></strong></p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 16px;"><strong><span style="color: #0000ff;">实验主要部分代码及注释：</span></strong></span></p>
+<p><em><strong>mnistdeepauto.m:</strong></em></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>clear <span style="color: #0000ff;">all</span><span style="color: #000000;">
+close </span><span style="color: #0000ff;">all</span><span style="color: #000000;">
+
+maxepoch</span>=<span style="color: #800080;">10</span>; %In the Science paper we <span style="color: #0000ff;">use</span> maxepoch=<span style="color: #800080;">50</span><span style="color: #000000;">, but it works just fine. 
+numhid</span>=<span style="color: #800080;">1000</span>; numpen=<span style="color: #800080;">500</span>; numpen2=<span style="color: #800080;">250</span>; numopen=<span style="color: #800080;">30</span><span style="color: #000000;">;
+
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Converting Raw files into Matlab format \n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+converter; </span>%<span style="color: #000000;"> 转换数据为matlab的格式
+
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Pretraining a deep autoencoder. \n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">The Science paper used 50 epochs. This uses %3i \n</span><span style="color: #800000;">'</span><span style="color: #000000;">, maxepoch);
+
+makebatches;
+[numcases numdims numbatches]</span>=<span style="color: #000000;">size(batchdata);
+
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Pretraining Layer 1 with RBM: %d-%d \n</span><span style="color: #800000;">'</span><span style="color: #000000;">,numdims,numhid);
+restart</span>=<span style="color: #800080;">1</span><span style="color: #000000;">;
+rbm;
+hidrecbiases</span>=hidbiases; %<span style="color: #000000;">hidbiases为隐含层的偏置值
+save mnistvh vishid hidrecbiases visbiases;</span>%<span style="color: #000000;">保持每层的变量，分别为权值，隐含层偏置值，可视层偏置值
+
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">\nPretraining Layer 2 with RBM: %d-%d \n</span><span style="color: #800000;">'</span><span style="color: #000000;">,numhid,numpen);
+batchdata</span>=batchposhidprobs;%<span style="color: #000000;">batchposhidprobs为第一个rbm的输出概率值
+numhid</span>=<span style="color: #000000;">numpen;
+restart</span>=<span style="color: #800080;">1</span><span style="color: #000000;">;
+rbm;</span>%<span style="color: #000000;"> 第2个rbm的训练
+hidpen</span>=vishid; penrecbiases=hidbiases; hidgenbiases=<span style="color: #000000;">visbiases;
+save mnisthp hidpen penrecbiases hidgenbiases;</span>%<span style="color: #000000;">mnisthp为所保存的文件名
+
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">\nPretraining Layer 3 with RBM: %d-%d \n</span><span style="color: #800000;">'</span><span style="color: #000000;">,numpen,numpen2);
+batchdata</span>=<span style="color: #000000;">batchposhidprobs;
+numhid</span>=<span style="color: #000000;">numpen2;
+restart</span>=<span style="color: #800080;">1</span><span style="color: #000000;">;
+rbm;
+hidpen2</span>=vishid; penrecbiases2=hidbiases; hidgenbiases2=visbiases;%<span style="color: #000000;">第3个rbm
+save mnisthp2 hidpen2 penrecbiases2 hidgenbiases2;
+
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">\nPretraining Layer 4 with RBM: %d-%d \n</span><span style="color: #800000;">'</span><span style="color: #000000;">,numpen2,numopen);
+batchdata</span>=<span style="color: #000000;">batchposhidprobs;
+numhid</span>=<span style="color: #000000;">numopen; 
+restart</span>=<span style="color: #800080;">1</span><span style="color: #000000;">;
+rbmhidlinear;
+hidtop</span>=vishid; toprecbiases=hidbiases; topgenbiases=visbiases;%<span style="color: #000000;">第4个rbm
+save mnistpo hidtop toprecbiases topgenbiases;
+
+backprop; </span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p><em><strong>rbm.m:</strong></em></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>epsilonw      = <span style="color: #800080;">0.1</span>;   % Learning rate <span style="color: #0000ff;">for</span><span style="color: #000000;"> weights 
+epsilonvb     </span>= <span style="color: #800080;">0.1</span>;   % Learning rate <span style="color: #0000ff;">for</span> biases <span style="color: #0000ff;">of</span> visible <span style="color: #0000ff;">units</span><span style="color: #000000;"> 
+epsilonhb     </span>= <span style="color: #800080;">0.1</span>;   % Learning rate <span style="color: #0000ff;">for</span> biases <span style="color: #0000ff;">of</span> hidden <span style="color: #0000ff;">units</span> %<span style="color: #000000;">由此可见这里隐含层和可视层的偏置值不是共用的，当然了，其权值是共用的
+weightcost  </span>= <span style="color: #800080;">0.0002</span><span style="color: #000000;">;   
+initialmomentum  </span>= <span style="color: #800080;">0.5</span><span style="color: #000000;">;
+finalmomentum    </span>= <span style="color: #800080;">0.9</span><span style="color: #000000;">;
+
+[numcases numdims numbatches]</span>=size(batchdata);%[<span style="color: #800080;">100</span>,<span style="color: #800080;">784</span>,<span style="color: #800080;">600</span><span style="color: #000000;">]
+
+</span><span style="color: #0000ff;">if</span> restart ==<span style="color: #800080;">1</span><span style="color: #000000;">,
+  restart</span>=<span style="color: #800080;">0</span><span style="color: #000000;">;
+  epoch</span>=<span style="color: #800080;">1</span><span style="color: #000000;">;
+
+</span>% Initializing symmetric weights <span style="color: #0000ff;">and</span><span style="color: #000000;"> biases. 
+  vishid     </span>= <span style="color: #800080;">0.1</span>*randn(numdims, numhid); %权值初始值随便给,<span style="color: #800080;">784</span>*<span style="color: #800080;">1000</span><span style="color: #000000;">
+  hidbiases  </span>= zeros(<span style="color: #800080;">1</span>,numhid); %<span style="color: #000000;">偏置值初始化为0
+  visbiases  </span>= zeros(<span style="color: #800080;">1</span><span style="color: #000000;">,numdims);
+
+  poshidprobs </span>= zeros(numcases,numhid);%<span style="color: #800080;">100</span>*<span style="color: #800080;">1000</span><span style="color: #000000;">，单个batch正向传播时隐含层的输出概率
+  neghidprobs </span>=<span style="color: #000000;"> zeros(numcases,numhid);
+  posprods    </span>= zeros(numdims,numhid);%<span style="color: #800080;">784</span>*<span style="color: #800080;">1000</span><span style="color: #000000;">
+  negprods    </span>=<span style="color: #000000;"> zeros(numdims,numhid);
+  vishidinc  </span>=<span style="color: #000000;"> zeros(numdims,numhid);
+  hidbiasinc </span>= zeros(<span style="color: #800080;">1</span><span style="color: #000000;">,numhid);
+  visbiasinc </span>= zeros(<span style="color: #800080;">1</span><span style="color: #000000;">,numdims);
+  batchposhidprobs</span>=zeros(numcases,numhid,numbatches);%<span style="color: #000000;"> 整个数据正向传播时隐含层的输出概率
+</span><span style="color: #0000ff;">end</span>
+
+<span style="color: #0000ff;">for</span> epoch = epoch:maxepoch, %<span style="color: #000000;">总共迭代10次
+ fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">epoch %d\r</span><span style="color: #800000;">'</span><span style="color: #000000;">,epoch); 
+ errsum</span>=<span style="color: #800080;">0</span><span style="color: #000000;">;
+ </span><span style="color: #0000ff;">for</span> batch = <span style="color: #800080;">1</span>:numbatches, %<span style="color: #000000;">每次迭代都有遍历所有的batch
+ fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">epoch %d batch %d\r</span><span style="color: #800000;">'</span><span style="color: #000000;">,epoch,batch);
+
+</span>%%%%%%%%% START <span style="color: #0000ff;">POSITIVE</span> PHASE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+  data </span>= batchdata(:,:,batch);%<span style="color: #000000;"> 每次迭代都需要取出一个batch的数据，每一行代表一个样本值（这里的数据是double的，不是01的，严格的说后面应将其01化）
+  poshidprobs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-data*vishid - repmat(hidbiases,numcases,<span style="color: #800080;">1</span>)));%<span style="color: #000000;"> 样本正向传播时隐含层节点的输出概率    
+  batchposhidprobs(:,:,batch)</span>=<span style="color: #000000;">poshidprobs;
+  posprods    </span>= data<span style="color: #800000;">'</span><span style="color: #800000;"> * poshidprobs;%784*1000，这个是求系统的能量值用的，矩阵中每个元素表示对应的可视层节点和隐含层节点的乘积（包含此次样本的数据对应值的累加）</span>
+  poshidact   = sum(poshidprobs);%<span style="color: #000000;">针对样本值进行求和
+  posvisact </span>=<span style="color: #000000;"> sum(data);
+
+</span>%%%%%%%%% <span style="color: #0000ff;">END</span> <span style="color: #0000ff;">OF</span> <span style="color: #0000ff;">POSITIVE</span> PHASE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+  poshidstates </span>= poshidprobs &gt; rand(numcases,numhid); %<span style="color: #000000;">将隐含层数据01化（此步骤在posprods之后进行），按照概率值大小来判定.<br>　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　%rand(m,n)为产生m*n大小的矩阵，矩阵中元素为(0,1)之间的均匀分布。
+
+</span>%%%%%%%%% START NEGATIVE PHASE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+  negdata </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-poshidstates*vishid<span style="color: #800000;">'</span><span style="color: #800000;"> - repmat(visbiases,numcases,1)));% 反向进行时的可视层数据</span>
+  neghidprobs = <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-negdata*vishid - repmat(hidbiases,numcases,<span style="color: #800080;">1</span>)));%<span style="color: #000000;"> 反向进行后又马上正向传播的隐含层概率值    
+  negprods  </span>= negdata<span style="color: #800000;">'</span><span style="color: #800000;">*neghidprobs;% 同理也是计算能量值用的，784*1000</span>
+  neghidact =<span style="color: #000000;"> sum(neghidprobs);
+  negvisact </span>=<span style="color: #000000;"> sum(negdata); 
+
+</span>%%%%%%%%% <span style="color: #0000ff;">END</span> <span style="color: #0000ff;">OF</span> NEGATIVE PHASE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+  err</span>= sum(sum( (data-negdata).^<span style="color: #800080;">2</span> ));%<span style="color: #000000;"> 重构后的差值
+  errsum </span>= err + errsum; %<span style="color: #000000;"> 变量errsum只是用来输出每次迭代时的误差而已
+
+   </span><span style="color: #0000ff;">if</span> epoch&gt;<span style="color: #800080;">5</span><span style="color: #000000;">,
+     momentum</span>=finalmomentum;%<span style="color: #800080;">0.5</span><span style="color: #000000;">，momentum为保持上一次权值更新增量的比例，如果迭代次数越少，则这个比例值可以稍微大一点
+   </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+     momentum</span>=initialmomentum;%<span style="color: #800080;">0.9</span>
+   <span style="color: #0000ff;">end</span><span style="color: #000000;">;
+
+</span>%%%%%%%%% UPDATE WEIGHTS <span style="color: #0000ff;">AND</span> BIASES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;"> 
+    vishidinc </span>= momentum*vishidinc + ... %vishidinc <span style="color: #800080;">784</span>*<span style="color: #800080;">1000</span><span style="color: #000000;">，权值更新时的增量；
+                epsilonw</span>*( (posprods-negprods)/numcases - weightcost*vishid); %posprods/numcases求的是正向传播时vihj的期望，同理negprods/<span style="color: #000000;">numcases是逆向重构时它们的期望
+    visbiasinc </span>= momentum*visbiasinc + (epsilonvb/numcases)*(posvisact-negvisact); %<span style="color: #000000;">这3个都是按照权值更新公式来的
+    hidbiasinc </span>= momentum*hidbiasinc + (epsilonhb/numcases)*(poshidact-<span style="color: #000000;">neghidact);
+
+    vishid </span>= vishid +<span style="color: #000000;"> vishidinc;
+    visbiases </span>= visbiases +<span style="color: #000000;"> visbiasinc;
+    hidbiases </span>= hidbiases +<span style="color: #000000;"> hidbiasinc;
+
+</span>%%%%%%%%%%%%%%%% <span style="color: #0000ff;">END</span> <span style="color: #0000ff;">OF</span> UPDATES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+  <span style="color: #0000ff;">end</span><span style="color: #000000;">
+  fprintf(</span><span style="color: #800080;">1</span>, <span style="color: #800000;">'</span><span style="color: #800000;">epoch %4i error %6.1f  \n</span><span style="color: #800000;">'</span><span style="color: #000000;">, epoch, errsum); 
+</span><span style="color: #0000ff;">end</span>;</pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p><em><strong>CG_MNIST.m:</strong></em></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #0000ff;">function</span> [f, df] =<span style="color: #000000;"> CG_MNIST(VV,Dim,XX);
+
+l1 </span>= Dim(<span style="color: #800080;">1</span><span style="color: #000000;">);
+l2 </span>= Dim(<span style="color: #800080;">2</span><span style="color: #000000;">);
+l3 </span>= Dim(<span style="color: #800080;">3</span><span style="color: #000000;">);
+l4</span>= Dim(<span style="color: #800080;">4</span><span style="color: #000000;">);
+l5</span>= Dim(<span style="color: #800080;">5</span><span style="color: #000000;">);
+l6</span>= Dim(<span style="color: #800080;">6</span><span style="color: #000000;">);
+l7</span>= Dim(<span style="color: #800080;">7</span><span style="color: #000000;">);
+l8</span>= Dim(<span style="color: #800080;">8</span><span style="color: #000000;">);
+l9</span>= Dim(<span style="color: #800080;">9</span><span style="color: #000000;">);
+N </span>= size(XX,<span style="color: #800080;">1</span>);%<span style="color: #000000;"> 样本的个数
+
+</span>%<span style="color: #000000;"> Do decomversion.
+ w1 </span>= reshape(VV(<span style="color: #800080;">1</span>:(l1+<span style="color: #800080;">1</span>)*l2),l1+<span style="color: #800080;">1</span>,l2);%<span style="color: #000000;"> VV是一个长的列向量，这里取出的向量已经包括了偏置值
+ xxx </span>= (l1+<span style="color: #800080;">1</span>)*l2; %<span style="color: #000000;">xxx 表示已经使用了的长度
+ w2 </span>= reshape(VV(xxx+<span style="color: #800080;">1</span>:xxx+(l2+<span style="color: #800080;">1</span>)*l3),l2+<span style="color: #800080;">1</span><span style="color: #000000;">,l3);
+ xxx </span>= xxx+(l2+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l3;
+ w3 </span>= reshape(VV(xxx+<span style="color: #800080;">1</span>:xxx+(l3+<span style="color: #800080;">1</span>)*l4),l3+<span style="color: #800080;">1</span><span style="color: #000000;">,l4);
+ xxx </span>= xxx+(l3+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l4;
+ w4 </span>= reshape(VV(xxx+<span style="color: #800080;">1</span>:xxx+(l4+<span style="color: #800080;">1</span>)*l5),l4+<span style="color: #800080;">1</span><span style="color: #000000;">,l5);
+ xxx </span>= xxx+(l4+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l5;
+ w5 </span>= reshape(VV(xxx+<span style="color: #800080;">1</span>:xxx+(l5+<span style="color: #800080;">1</span>)*l6),l5+<span style="color: #800080;">1</span><span style="color: #000000;">,l6);
+ xxx </span>= xxx+(l5+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l6;
+ w6 </span>= reshape(VV(xxx+<span style="color: #800080;">1</span>:xxx+(l6+<span style="color: #800080;">1</span>)*l7),l6+<span style="color: #800080;">1</span><span style="color: #000000;">,l7);
+ xxx </span>= xxx+(l6+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l7;
+ w7 </span>= reshape(VV(xxx+<span style="color: #800080;">1</span>:xxx+(l7+<span style="color: #800080;">1</span>)*l8),l7+<span style="color: #800080;">1</span><span style="color: #000000;">,l8);
+ xxx </span>= xxx+(l7+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l8;
+ w8 </span>= reshape(VV(xxx+<span style="color: #800080;">1</span>:xxx+(l8+<span style="color: #800080;">1</span>)*l9),l8+<span style="color: #800080;">1</span>,l9);%<span style="color: #000000;"> 上面一系列步骤完成权值的矩阵化
+
+
+  XX </span>= [XX ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w1probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-XX*w1)); w1probs = [w1probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w2probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w1probs*w2)); w2probs = [w2probs ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w3probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w2probs*w3)); w3probs = [w3probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w4probs </span>= w3probs*w4; w4probs = [w4probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w5probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w4probs*w5)); w5probs = [w5probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w6probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w5probs*w6)); w6probs = [w6probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w7probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w6probs*w7)); w7probs = [w7probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  XXout </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w7probs*<span style="color: #000000;">w8));
+
+f </span>= -<span style="color: #800080;">1</span>/N*sum(sum( XX(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span>).*log(XXout) + (<span style="color: #800080;">1</span>-XX(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span>)).*log(<span style="color: #800080;">1</span>-XXout)));%<span style="color: #000000;">原始数据和重构数据的交叉熵
+IO </span>= <span style="color: #800080;">1</span>/N*(XXout-XX(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span><span style="color: #000000;">));
+Ix8</span>=<span style="color: #000000;">IO; 
+dw8 </span>=  w7probs<span style="color: #800000;">'</span><span style="color: #800000;">*Ix8;%输出层的误差项，但是这个公式怎么和以前介绍的不同，因为它的误差评价标准是交叉熵，不是MSE</span>
+<span style="color: #000000;">
+Ix7 </span>= (Ix8*w8<span style="color: #800000;">'</span><span style="color: #800000;">).*w7probs.*(1-w7probs); </span>
+Ix7 = Ix7(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span><span style="color: #000000;">);
+dw7 </span>=  w6probs<span style="color: #800000;">'</span><span style="color: #800000;">*Ix7;</span>
+<span style="color: #000000;">
+Ix6 </span>= (Ix7*w7<span style="color: #800000;">'</span><span style="color: #800000;">).*w6probs.*(1-w6probs); </span>
+Ix6 = Ix6(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span><span style="color: #000000;">);
+dw6 </span>=  w5probs<span style="color: #800000;">'</span><span style="color: #800000;">*Ix6;</span>
+<span style="color: #000000;">
+Ix5 </span>= (Ix6*w6<span style="color: #800000;">'</span><span style="color: #800000;">).*w5probs.*(1-w5probs); </span>
+Ix5 = Ix5(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span><span style="color: #000000;">);
+dw5 </span>=  w4probs<span style="color: #800000;">'</span><span style="color: #800000;">*Ix5;</span>
+<span style="color: #000000;">
+Ix4 </span>= (Ix5*w5<span style="color: #800000;">'</span><span style="color: #800000;">);</span>
+Ix4 = Ix4(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span><span style="color: #000000;">);
+dw4 </span>=  w3probs<span style="color: #800000;">'</span><span style="color: #800000;">*Ix4;</span>
+<span style="color: #000000;">
+Ix3 </span>= (Ix4*w4<span style="color: #800000;">'</span><span style="color: #800000;">).*w3probs.*(1-w3probs); </span>
+Ix3 = Ix3(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span><span style="color: #000000;">);
+dw3 </span>=  w2probs<span style="color: #800000;">'</span><span style="color: #800000;">*Ix3;</span>
+<span style="color: #000000;">
+Ix2 </span>= (Ix3*w3<span style="color: #800000;">'</span><span style="color: #800000;">).*w2probs.*(1-w2probs); </span>
+Ix2 = Ix2(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span><span style="color: #000000;">);
+dw2 </span>=  w1probs<span style="color: #800000;">'</span><span style="color: #800000;">*Ix2;</span>
+<span style="color: #000000;">
+Ix1 </span>= (Ix2*w2<span style="color: #800000;">'</span><span style="color: #800000;">).*w1probs.*(1-w1probs); </span>
+Ix1 = Ix1(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span><span style="color: #000000;">);
+dw1 </span>=  XX<span style="color: #800000;">'</span><span style="color: #800000;">*Ix1;</span>
+<span style="color: #000000;">
+df </span>= [dw1(:)<span style="color: #800000;">'</span><span style="color: #800000;"> dw2(:)</span><span style="color: #800000;">'</span> dw3(:)<span style="color: #800000;">'</span><span style="color: #800000;"> dw4(:)</span><span style="color: #800000;">'</span> dw5(:)<span style="color: #800000;">'</span><span style="color: #800000;"> dw6(:)</span><span style="color: #800000;">'</span>  dw7(:)<span style="color: #800000;">'</span><span style="color: #800000;">  dw8(:)</span><span style="color: #800000;">'</span>  ]<span style="color: #800000;">'</span><span style="color: #800000;">; %网络代价函数的偏导数</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p><em><strong>backprop.m:</strong></em></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>maxepoch=<span style="color: #800080;">200</span>;%<span style="color: #000000;">迭代35次就用了6个多小时，200次要30多个小时，太长时间了，就没让它继续运行了
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">\nFine-tuning deep autoencoder by minimizing cross entropy error. \n</span><span style="color: #800000;">'</span>);%<span style="color: #000000;">其微调通过最小化交叉熵来实现
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">60 batches of 1000 cases each. \n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+
+load mnistvh</span>%<span style="color: #000000;"> 分别download4个rbm的参数
+load mnisthp
+load mnisthp2
+load mnistpo 
+
+makebatches;
+[numcases numdims numbatches]</span>=<span style="color: #000000;">size(batchdata);
+N</span>=<span style="color: #000000;">numcases; 
+
+</span>%%%% PREINITIALIZE WEIGHTS <span style="color: #0000ff;">OF</span> THE AUTOENCODER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+w1</span>=[vishid; hidrecbiases];%<span style="color: #000000;">分别装载每层的权值和偏置值，将它们作为一个整体
+w2</span>=<span style="color: #000000;">[hidpen; penrecbiases];
+w3</span>=<span style="color: #000000;">[hidpen2; penrecbiases2];
+w4</span>=<span style="color: #000000;">[hidtop; toprecbiases];
+w5</span>=[hidtop<span style="color: #800000;">'</span><span style="color: #800000;">; topgenbiases]; </span>
+w6=[hidpen2<span style="color: #800000;">'</span><span style="color: #800000;">; hidgenbiases2]; </span>
+w7=[hidpen<span style="color: #800000;">'</span><span style="color: #800000;">; hidgenbiases]; </span>
+w8=[vishid<span style="color: #800000;">'</span><span style="color: #800000;">; visbiases];</span>
+
+%%%%%%%%%% <span style="color: #0000ff;">END</span> <span style="color: #0000ff;">OF</span> PREINITIALIZATIO <span style="color: #0000ff;">OF</span> WEIGHTS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+
+l1</span>=size(w1,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span>;%<span style="color: #000000;">每个网络层中节点的个数
+l2</span>=size(w2,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span><span style="color: #000000;">;
+l3</span>=size(w3,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span><span style="color: #000000;">;
+l4</span>=size(w4,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span><span style="color: #000000;">;
+l5</span>=size(w5,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span><span style="color: #000000;">;
+l6</span>=size(w6,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span><span style="color: #000000;">;
+l7</span>=size(w7,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span><span style="color: #000000;">;
+l8</span>=size(w8,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span><span style="color: #000000;">;
+l9</span>=l1; %<span style="color: #000000;">输出层节点和输入层的一样
+test_err</span>=<span style="color: #000000;">[];
+train_err</span>=<span style="color: #000000;">[];
+
+
+</span><span style="color: #0000ff;">for</span> epoch = <span style="color: #800080;">1</span><span style="color: #000000;">:maxepoch
+
+</span>%%%%%%%%%%%%%%%%%%%% COMPUTE TRAINING RECONSTRUCTION <span style="color: #0000ff;">ERROR</span> %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+err</span>=<span style="color: #800080;">0</span><span style="color: #000000;">; 
+[numcases numdims numbatches]</span>=<span style="color: #000000;">size(batchdata);
+N</span>=<span style="color: #000000;">numcases;
+ </span><span style="color: #0000ff;">for</span> batch = <span style="color: #800080;">1</span><span style="color: #000000;">:numbatches
+  data </span>=<span style="color: #000000;"> [batchdata(:,:,batch)];
+  data </span>= [data ones(N,<span style="color: #800080;">1</span>)];%<span style="color: #000000;"> b补上一维，因为有偏置项
+  w1probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-data*w1)); w1probs = [w1probs  ones(N,<span style="color: #800080;">1</span>)];%<span style="color: #000000;">正向传播，计算每一层的输出，且同时在输出上增加一维（值为常量1）
+  w2probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w1probs*w2)); w2probs = [w2probs ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w3probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w2probs*w3)); w3probs = [w3probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w4probs </span>= w3probs*w4; w4probs = [w4probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w5probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w4probs*w5)); w5probs = [w5probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w6probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w5probs*w6)); w6probs = [w6probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w7probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w6probs*w7)); w7probs = [w7probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  dataout </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w7probs*<span style="color: #000000;">w8));
+  err</span>= err +  <span style="color: #800080;">1</span>/N*sum(sum( (data(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span>)-dataout).^<span style="color: #800080;">2</span> )); %<span style="color: #000000;">重构的误差值
+  </span><span style="color: #0000ff;">end</span><span style="color: #000000;">
+ train_err(epoch)</span>=err/numbatches;%<span style="color: #000000;">总的误差值（训练样本上）
+
+</span>%%%%%%%%%%%%%% <span style="color: #0000ff;">END</span> <span style="color: #0000ff;">OF</span> COMPUTING TRAINING RECONSTRUCTION <span style="color: #0000ff;">ERROR</span> %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%% DISPLAY FIGURE TOP ROW <span style="color: #0000ff;">REAL</span> DATA BOTTOM ROW RECONSTRUCTIONS %%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Displaying in figure 1: Top row - real data, Bottom row -- reconstructions \n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+</span><span style="color: #0000ff;">output</span>=<span style="color: #000000;">[];
+ </span><span style="color: #0000ff;">for</span> ii=<span style="color: #800080;">1</span>:<span style="color: #800080;">15</span>
+  <span style="color: #0000ff;">output</span> = [<span style="color: #0000ff;">output</span> data(ii,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span>)<span style="color: #800000;">'</span><span style="color: #800000;"> dataout(ii,:)</span><span style="color: #800000;">'</span>];%<span style="color: #000000;">output为15（因为是显示15个数字）组，每组2列，分别为理论值和重构值
+ </span><span style="color: #0000ff;">end</span>
+   <span style="color: #0000ff;">if</span> epoch==<span style="color: #800080;">1</span><span style="color: #000000;"> 
+   close </span><span style="color: #0000ff;">all</span><span style="color: #000000;"> 
+   figure(</span><span style="color: #800000;">'</span><span style="color: #800000;">Position</span><span style="color: #800000;">'</span>,[<span style="color: #800080;">100</span>,<span style="color: #800080;">600</span>,<span style="color: #800080;">1000</span>,<span style="color: #800080;">200</span><span style="color: #000000;">]);
+   </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> 
+   figure(</span><span style="color: #800080;">1</span><span style="color: #000000;">)
+   </span><span style="color: #0000ff;">end</span><span style="color: #000000;"> 
+   mnistdisp(</span><span style="color: #0000ff;">output</span><span style="color: #000000;">);
+   drawnow;
+
+</span>%%%%%%%%%%%%%%%%%%%% COMPUTE TEST RECONSTRUCTION <span style="color: #0000ff;">ERROR</span> %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+[testnumcases testnumdims testnumbatches]</span>=<span style="color: #000000;">size(testbatchdata);
+N</span>=<span style="color: #000000;">testnumcases;
+err</span>=<span style="color: #800080;">0</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">for</span> batch = <span style="color: #800080;">1</span><span style="color: #000000;">:testnumbatches
+  data </span>=<span style="color: #000000;"> [testbatchdata(:,:,batch)];
+  data </span>= [data ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w1probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-data*w1)); w1probs = [w1probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w2probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w1probs*w2)); w2probs = [w2probs ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w3probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w2probs*w3)); w3probs = [w3probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w4probs </span>= w3probs*w4; w4probs = [w4probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w5probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w4probs*w5)); w5probs = [w5probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w6probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w5probs*w6)); w6probs = [w6probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w7probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w6probs*w7)); w7probs = [w7probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  dataout </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w7probs*<span style="color: #000000;">w8));
+  err </span>= err +  <span style="color: #800080;">1</span>/N*sum(sum( (data(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span>)-dataout).^<span style="color: #800080;">2</span><span style="color: #000000;"> ));
+  </span><span style="color: #0000ff;">end</span><span style="color: #000000;">
+ test_err(epoch)</span>=err/<span style="color: #000000;">testnumbatches;
+ fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Before epoch %d Train squared error: %6.3f Test squared error: %6.3f \t \t \n</span><span style="color: #800000;">'</span><span style="color: #000000;">,epoch,train_err(epoch),test_err(epoch));
+
+</span>%%%%%%%%%%%%%% <span style="color: #0000ff;">END</span> <span style="color: #0000ff;">OF</span> COMPUTING TEST RECONSTRUCTION <span style="color: #0000ff;">ERROR</span> %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+
+ tt</span>=<span style="color: #800080;">0</span><span style="color: #000000;">;
+ </span><span style="color: #0000ff;">for</span> batch = <span style="color: #800080;">1</span>:numbatches/<span style="color: #800080;">10</span> %<span style="color: #000000;">测试样本numbatches是100
+ fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">epoch %d batch %d\r</span><span style="color: #800000;">'</span><span style="color: #000000;">,epoch,batch);
+
+</span>%%%%%%%%%%% COMBINE <span style="color: #800080;">10</span> MINIBATCHES INTO <span style="color: #800080;">1</span> LARGER MINIBATCH %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+ tt</span>=tt+<span style="color: #800080;">1</span><span style="color: #000000;">; 
+ data</span>=<span style="color: #000000;">[];
+ </span><span style="color: #0000ff;">for</span> kk=<span style="color: #800080;">1</span>:<span style="color: #800080;">10</span><span style="color: #000000;">
+  data</span>=<span style="color: #000000;">[data 
+        batchdata(:,:,(tt</span>-<span style="color: #800080;">1</span>)*<span style="color: #800080;">10</span>+<span style="color: #000000;">kk)]; 
+ </span><span style="color: #0000ff;">end</span> 
+
+%%%%%%%%%%%%%%% PERFORM CONJUGATE GRADIENT <span style="color: #0000ff;">WITH</span> <span style="color: #800080;">3</span> LINESEARCHES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">共轭梯度线性搜索
+  max_iter</span>=<span style="color: #800080;">3</span><span style="color: #000000;">;
+  VV </span>= [w1(:)<span style="color: #800000;">'</span><span style="color: #800000;"> w2(:)</span><span style="color: #800000;">'</span> w3(:)<span style="color: #800000;">'</span><span style="color: #800000;"> w4(:)</span><span style="color: #800000;">'</span> w5(:)<span style="color: #800000;">'</span><span style="color: #800000;"> w6(:)</span><span style="color: #800000;">'</span> w7(:)<span style="color: #800000;">'</span><span style="color: #800000;"> w8(:)</span><span style="color: #800000;">'</span>]<span style="color: #800000;">'</span><span style="color: #800000;">;% 把所有权值（已经包括了偏置值）变成一个大的列向量</span>
+  Dim = [l1; l2; l3; l4; l5; l6; l7; l8; l9];%<span style="color: #000000;">每层网络对应节点的个数（不包括偏置值）
+
+  [X, fX] </span>= minimize(VV,<span style="color: #800000;">'</span><span style="color: #800000;">CG_MNIST</span><span style="color: #800000;">'</span><span style="color: #000000;">,max_iter,Dim,data);
+
+  w1 </span>= reshape(X(<span style="color: #800080;">1</span>:(l1+<span style="color: #800080;">1</span>)*l2),l1+<span style="color: #800080;">1</span><span style="color: #000000;">,l2);
+  xxx </span>= (l1+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l2;
+  w2 </span>= reshape(X(xxx+<span style="color: #800080;">1</span>:xxx+(l2+<span style="color: #800080;">1</span>)*l3),l2+<span style="color: #800080;">1</span><span style="color: #000000;">,l3);
+  xxx </span>= xxx+(l2+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l3;
+  w3 </span>= reshape(X(xxx+<span style="color: #800080;">1</span>:xxx+(l3+<span style="color: #800080;">1</span>)*l4),l3+<span style="color: #800080;">1</span><span style="color: #000000;">,l4);
+  xxx </span>= xxx+(l3+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l4;
+  w4 </span>= reshape(X(xxx+<span style="color: #800080;">1</span>:xxx+(l4+<span style="color: #800080;">1</span>)*l5),l4+<span style="color: #800080;">1</span><span style="color: #000000;">,l5);
+  xxx </span>= xxx+(l4+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l5;
+  w5 </span>= reshape(X(xxx+<span style="color: #800080;">1</span>:xxx+(l5+<span style="color: #800080;">1</span>)*l6),l5+<span style="color: #800080;">1</span><span style="color: #000000;">,l6);
+  xxx </span>= xxx+(l5+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l6;
+  w6 </span>= reshape(X(xxx+<span style="color: #800080;">1</span>:xxx+(l6+<span style="color: #800080;">1</span>)*l7),l6+<span style="color: #800080;">1</span><span style="color: #000000;">,l7);
+  xxx </span>= xxx+(l6+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l7;
+  w7 </span>= reshape(X(xxx+<span style="color: #800080;">1</span>:xxx+(l7+<span style="color: #800080;">1</span>)*l8),l7+<span style="color: #800080;">1</span><span style="color: #000000;">,l8);
+  xxx </span>= xxx+(l7+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l8;
+  w8 </span>= reshape(X(xxx+<span style="color: #800080;">1</span>:xxx+(l8+<span style="color: #800080;">1</span>)*l9),l8+<span style="color: #800080;">1</span>,l9); %<span style="color: #000000;">依次重新赋值为优化后的参数
+
+</span>%%%%%%%%%%%%%%% <span style="color: #0000ff;">END</span> <span style="color: #0000ff;">OF</span> CONJUGATE GRADIENT <span style="color: #0000ff;">WITH</span> <span style="color: #800080;">3</span> LINESEARCHES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ <span style="color: #0000ff;">end</span><span style="color: #000000;">
+
+ save mnist_weights w1 w2 w3 w4 w5 w6 w7 w8 
+ save mnist_error test_err train_err;
+
+</span><span style="color: #0000ff;">end</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p><span style="line-height: 1.5;">&nbsp;</span></p>
+<p>　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">MINST识别实验：</span></strong></span></p>
+<p>　　MINST手写数字库的识别部分和前面的降维部分其实很相似。首先它也是预训练整个网络，只不过在MINST识别时，预训练的网络部分需要包括输出softmax部分，且这部分预训练时是用的有监督方法的。在微调部分的不同体现在：MINST降维部分是用的无监督方法，即数据的标签为原始的输入数据。而MINST识别部分数据的标签为训练样本的实际标签</p>
+<p>　　在进行MINST手写数字体识别的时候，需要计算加入了softmax部分的网络的代价函数，作者的程序中给出了2个函数。其中第一个函数用于预训练softmax分类器：</p>
+<p>　　<em><strong><span style="color: #3366ff;">function [f, df] = CG_CLASSIFY_INIT(VV,Dim,w3probs,target);</span></strong></em></p>
+<p>　　该函数是专门针对softmax分类器那部分预训练用的，因为一开始的rbm预训练部分没有包括输出层softmax网络。输入参数VV表示整个网络的权值向量（也包括了softmax那一部分），Dim为sofmmax对应部分的2层网络节点个数的向量，w3probs为训练softmax所用的样本集，target为对应样本集的标签。f和df分别为softmax网络的代价函数和代价函数的偏导数。</p>
+<p>　　另一个才是真正的计算网络微调的代价函数：</p>
+<p>　<em><strong><span style="color: #3366ff;">　function [f, df] = CG_CLASSIFY(VV,Dim,XX,target);</span></strong></em></p>
+<p>　　函数输入值VV代表网络的参数向量，Dim为每层网络的节点数向量，XX为训练样本集，target为训练样本集的标签，f和df分别为整个网络的代价函数以及代价函数的偏导数。</p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 16px;"><strong><span style="color: #0000ff;">实验结果：</span></strong></span></p>
+<p>　　作者采用的1个输入层，3个隐含层和一个softmax分类层的输出层，网络的节点数依次为：784-500-500-2000-10。</p>
+<p>　　其最终识别的错误率为：<strong><span style="color: #ff0000;">1.2%.</span></strong></p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 16px;"><strong><span style="color: #0000ff;">实验主要部分代码及注释：</span></strong></span></p>
+<p><em><strong>mnistclassify.m:</strong></em></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>clear <span style="color: #0000ff;">all</span><span style="color: #000000;">
+close </span><span style="color: #0000ff;">all</span><span style="color: #000000;">
+
+maxepoch</span>=<span style="color: #800080;">50</span><span style="color: #000000;">; 
+numhid</span>=<span style="color: #800080;">500</span>; numpen=<span style="color: #800080;">500</span>; numpen2=<span style="color: #800080;">2000</span><span style="color: #000000;">; 
+
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Converting Raw files into Matlab format \n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+converter; 
+
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Pretraining a deep autoencoder. \n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">The Science paper used 50 epochs. This uses %3i \n</span><span style="color: #800000;">'</span><span style="color: #000000;">, maxepoch);
+
+makebatches;
+[numcases numdims numbatches]</span>=<span style="color: #000000;">size(batchdata);
+
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Pretraining Layer 1 with RBM: %d-%d \n</span><span style="color: #800000;">'</span><span style="color: #000000;">,numdims,numhid);
+restart</span>=<span style="color: #800080;">1</span><span style="color: #000000;">;
+rbm;
+hidrecbiases</span>=<span style="color: #000000;">hidbiases; 
+save mnistvhclassify vishid hidrecbiases visbiases;</span>%<span style="color: #000000;">mnistvhclassify为第一层网络的权值保存的文件名
+
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">\nPretraining Layer 2 with RBM: %d-%d \n</span><span style="color: #800000;">'</span><span style="color: #000000;">,numhid,numpen);
+batchdata</span>=<span style="color: #000000;">batchposhidprobs;
+numhid</span>=<span style="color: #000000;">numpen;
+restart</span>=<span style="color: #800080;">1</span><span style="color: #000000;">;
+rbm;
+hidpen</span>=vishid; penrecbiases=hidbiases; hidgenbiases=<span style="color: #000000;">visbiases;
+save mnisthpclassify hidpen penrecbiases hidgenbiases;</span>%<span style="color: #000000;">mnisthpclassify和前面类似，第2层网络的
+
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">\nPretraining Layer 3 with RBM: %d-%d \n</span><span style="color: #800000;">'</span><span style="color: #000000;">,numpen,numpen2);
+batchdata</span>=<span style="color: #000000;">batchposhidprobs;
+numhid</span>=<span style="color: #000000;">numpen2;
+restart</span>=<span style="color: #800080;">1</span><span style="color: #000000;">;
+rbm;
+hidpen2</span>=vishid; penrecbiases2=hidbiases; hidgenbiases2=<span style="color: #000000;">visbiases;
+save mnisthp2classify hidpen2 penrecbiases2 hidgenbiases2;
+
+backpropclassify; </span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p><em><strong>backpropclassify.m:</strong></em></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>maxepoch=<span style="color: #800080;">200</span><span style="color: #000000;">;
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">\nTraining discriminative model on MNIST by minimizing cross entropy error. \n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">60 batches of 1000 cases each. \n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+
+load mnistvhclassify </span>%<span style="color: #000000;">载入3个rbm网络的预训练好了的权值
+load mnisthpclassify
+load mnisthp2classify
+
+makebatches;
+[numcases numdims numbatches]</span>=<span style="color: #000000;">size(batchdata);
+N</span>=<span style="color: #000000;">numcases; 
+
+</span>%%%% PREINITIALIZE WEIGHTS <span style="color: #0000ff;">OF</span> THE DISCRIMINATIVE MODEL%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+
+w1</span>=<span style="color: #000000;">[vishid; hidrecbiases];
+w2</span>=<span style="color: #000000;">[hidpen; penrecbiases];
+w3</span>=<span style="color: #000000;">[hidpen2; penrecbiases2];
+w_class </span>= <span style="color: #800080;">0.1</span>*randn(size(w3,<span style="color: #800080;">2</span>)+<span style="color: #800080;">1</span>,<span style="color: #800080;">10</span>); %<span style="color: #000000;">因为要分类，所以最后一层直接输出10个节点，类似softmax分类器
+ 
+
+</span>%%%%%%%%%% <span style="color: #0000ff;">END</span> <span style="color: #0000ff;">OF</span> PREINITIALIZATIO <span style="color: #0000ff;">OF</span> WEIGHTS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+
+l1</span>=size(w1,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span><span style="color: #000000;">;
+l2</span>=size(w2,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span><span style="color: #000000;">;
+l3</span>=size(w3,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span><span style="color: #000000;">;
+l4</span>=size(w_class,<span style="color: #800080;">1</span>)-<span style="color: #800080;">1</span><span style="color: #000000;">;
+l5</span>=<span style="color: #800080;">10</span><span style="color: #000000;">; 
+test_err</span>=<span style="color: #000000;">[];
+train_err</span>=<span style="color: #000000;">[];
+
+
+</span><span style="color: #0000ff;">for</span> epoch = <span style="color: #800080;">1</span>:maxepoch %<span style="color: #800080;">200</span>
+
+%%%%%%%%%%%%%%%%%%%% COMPUTE TRAINING MISCLASSIFICATION <span style="color: #0000ff;">ERROR</span> %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+err</span>=<span style="color: #800080;">0</span><span style="color: #000000;">; 
+err_cr</span>=<span style="color: #800080;">0</span><span style="color: #000000;">;
+counter</span>=<span style="color: #800080;">0</span><span style="color: #000000;">;
+[numcases numdims numbatches]</span>=<span style="color: #000000;">size(batchdata);
+N</span>=<span style="color: #000000;">numcases;
+ </span><span style="color: #0000ff;">for</span> batch = <span style="color: #800080;">1</span><span style="color: #000000;">:numbatches
+  data </span>=<span style="color: #000000;"> [batchdata(:,:,batch)];
+  target </span>=<span style="color: #000000;"> [batchtargets(:,:,batch)];
+  data </span>= [data ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w1probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-data*w1)); w1probs = [w1probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w2probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w1probs*w2)); w2probs = [w2probs ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w3probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w2probs*w3)); w3probs = [w3probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  targetout </span>= exp(w3probs*<span style="color: #000000;">w_class);
+  targetout </span>= targetout./repmat(sum(targetout,<span style="color: #800080;">2</span>),<span style="color: #800080;">1</span>,<span style="color: #800080;">10</span>); %<span style="color: #000000;">softmax分类器
+
+  [I J]</span>=max(targetout,[],<span style="color: #800080;">2</span>);%<span style="color: #000000;">J是索引值
+  [I1 J1]</span>=max(target,[],<span style="color: #800080;">2</span><span style="color: #000000;">);
+  counter</span>=counter+length(find(J==J1));% length(find(J==<span style="color: #000000;">J1))表示为预测值和网络输出值相等的个数
+  err_cr </span>= err_cr- sum(sum( target(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>).*<span style="color: #000000;">log(targetout))) ;
+ </span><span style="color: #0000ff;">end</span><span style="color: #000000;">
+ train_err(epoch)</span>=(numcases*numbatches-counter);%<span style="color: #000000;">每次迭代的训练误差
+ train_crerr(epoch)</span>=err_cr/<span style="color: #000000;">numbatches;
+
+</span>%%%%%%%%%%%%%% <span style="color: #0000ff;">END</span> <span style="color: #0000ff;">OF</span> COMPUTING TRAINING MISCLASSIFICATION <span style="color: #0000ff;">ERROR</span> %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% COMPUTE TEST MISCLASSIFICATION <span style="color: #0000ff;">ERROR</span> %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+err</span>=<span style="color: #800080;">0</span><span style="color: #000000;">;
+err_cr</span>=<span style="color: #800080;">0</span><span style="color: #000000;">;
+counter</span>=<span style="color: #800080;">0</span><span style="color: #000000;">;
+[testnumcases testnumdims testnumbatches]</span>=<span style="color: #000000;">size(testbatchdata);
+N</span>=<span style="color: #000000;">testnumcases;
+</span><span style="color: #0000ff;">for</span> batch = <span style="color: #800080;">1</span><span style="color: #000000;">:testnumbatches
+  data </span>=<span style="color: #000000;"> [testbatchdata(:,:,batch)];
+  target </span>=<span style="color: #000000;"> [testbatchtargets(:,:,batch)];
+  data </span>= [data ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w1probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-data*w1)); w1probs = [w1probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w2probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w1probs*w2)); w2probs = [w2probs ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w3probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w2probs*w3)); w3probs = [w3probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  targetout </span>= exp(w3probs*<span style="color: #000000;">w_class);
+  targetout </span>= targetout./repmat(sum(targetout,<span style="color: #800080;">2</span>),<span style="color: #800080;">1</span>,<span style="color: #800080;">10</span><span style="color: #000000;">);
+
+  [I J]</span>=max(targetout,[],<span style="color: #800080;">2</span><span style="color: #000000;">);
+  [I1 J1]</span>=max(target,[],<span style="color: #800080;">2</span><span style="color: #000000;">);
+  counter</span>=counter+length(find(J==<span style="color: #000000;">J1));
+  err_cr </span>= err_cr- sum(sum( target(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>).*<span style="color: #000000;">log(targetout))) ;
+</span><span style="color: #0000ff;">end</span><span style="color: #000000;">
+ test_err(epoch)</span>=(testnumcases*testnumbatches-counter); %<span style="color: #000000;">测试样本的误差，这都是在预训练基础上得到的结果
+ test_crerr(epoch)</span>=err_cr/<span style="color: #000000;">testnumbatches;
+ fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Before epoch %d Train # misclassified: %d (from %d). Test # misclassified: %d (from %d) \t \t \n</span><span style="color: #800000;">'</span><span style="color: #000000;">,...
+            epoch,train_err(epoch),numcases</span>*numbatches,test_err(epoch),testnumcases*<span style="color: #000000;">testnumbatches);
+
+</span>%%%%%%%%%%%%%% <span style="color: #0000ff;">END</span> <span style="color: #0000ff;">OF</span> COMPUTING TEST MISCLASSIFICATION <span style="color: #0000ff;">ERROR</span> %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+
+ tt</span>=<span style="color: #800080;">0</span><span style="color: #000000;">;
+ </span><span style="color: #0000ff;">for</span> batch = <span style="color: #800080;">1</span>:numbatches/<span style="color: #800080;">10</span><span style="color: #000000;">
+ fprintf(</span><span style="color: #800080;">1</span>,<span style="color: #800000;">'</span><span style="color: #800000;">epoch %d batch %d\r</span><span style="color: #800000;">'</span><span style="color: #000000;">,epoch,batch);
+
+</span>%%%%%%%%%%% COMBINE <span style="color: #800080;">10</span> MINIBATCHES INTO <span style="color: #800080;">1</span> LARGER MINIBATCH %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+ tt</span>=tt+<span style="color: #800080;">1</span><span style="color: #000000;">; 
+ data</span>=<span style="color: #000000;">[];
+ targets</span>=<span style="color: #000000;">[]; 
+ </span><span style="color: #0000ff;">for</span> kk=<span style="color: #800080;">1</span>:<span style="color: #800080;">10</span><span style="color: #000000;">
+  data</span>=<span style="color: #000000;">[data 
+        batchdata(:,:,(tt</span>-<span style="color: #800080;">1</span>)*<span style="color: #800080;">10</span>+<span style="color: #000000;">kk)]; 
+  targets</span>=<span style="color: #000000;">[targets
+        batchtargets(:,:,(tt</span>-<span style="color: #800080;">1</span>)*<span style="color: #800080;">10</span>+<span style="color: #000000;">kk)];
+ </span><span style="color: #0000ff;">end</span> 
+
+%%%%%%%%%%%%%%% PERFORM CONJUGATE GRADIENT <span style="color: #0000ff;">WITH</span> <span style="color: #800080;">3</span> LINESEARCHES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%<span style="color: #000000;">
+  max_iter</span>=<span style="color: #800080;">3</span><span style="color: #000000;">;
+
+  </span><span style="color: #0000ff;">if</span> epoch&lt;<span style="color: #800080;">6</span>  % First update top-<span style="color: #000000;">level weights holding other weights fixed. 前6次迭代都是针对softmax部分的预训练
+    N </span>= size(data,<span style="color: #800080;">1</span><span style="color: #000000;">);
+    XX </span>= [data ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+    w1probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-XX*w1)); w1probs = [w1probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+    w2probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w1probs*w2)); w2probs = [w2probs ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+    w3probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w2probs*w3)); %w3probs = [w3probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+
+    VV </span>= [w_class(:)<span style="color: #800000;">'</span><span style="color: #800000;">]</span><span style="color: #800000;">'</span><span style="color: #000000;">;
+    Dim </span>=<span style="color: #000000;"> [l4; l5];
+    [X, fX] </span>= minimize(VV,<span style="color: #800000;">'</span><span style="color: #800000;">CG_CLASSIFY_INIT</span><span style="color: #800000;">'</span><span style="color: #000000;">,max_iter,Dim,w3probs,targets);
+    w_class </span>= reshape(X,l4+<span style="color: #800080;">1</span><span style="color: #000000;">,l5);
+
+  </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+    VV </span>= [w1(:)<span style="color: #800000;">'</span><span style="color: #800000;"> w2(:)</span><span style="color: #800000;">'</span> w3(:)<span style="color: #800000;">'</span><span style="color: #800000;"> w_class(:)</span><span style="color: #800000;">'</span>]<span style="color: #800000;">'</span><span style="color: #800000;">;</span>
+    Dim =<span style="color: #000000;"> [l1; l2; l3; l4; l5];
+    [X, fX] </span>= minimize(VV,<span style="color: #800000;">'</span><span style="color: #800000;">CG_CLASSIFY</span><span style="color: #800000;">'</span><span style="color: #000000;">,max_iter,Dim,data,targets);
+
+    w1 </span>= reshape(X(<span style="color: #800080;">1</span>:(l1+<span style="color: #800080;">1</span>)*l2),l1+<span style="color: #800080;">1</span><span style="color: #000000;">,l2);
+    xxx </span>= (l1+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l2;
+    w2 </span>= reshape(X(xxx+<span style="color: #800080;">1</span>:xxx+(l2+<span style="color: #800080;">1</span>)*l3),l2+<span style="color: #800080;">1</span><span style="color: #000000;">,l3);
+    xxx </span>= xxx+(l2+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l3;
+    w3 </span>= reshape(X(xxx+<span style="color: #800080;">1</span>:xxx+(l3+<span style="color: #800080;">1</span>)*l4),l3+<span style="color: #800080;">1</span><span style="color: #000000;">,l4);
+    xxx </span>= xxx+(l3+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l4;
+    w_class </span>= reshape(X(xxx+<span style="color: #800080;">1</span>:xxx+(l4+<span style="color: #800080;">1</span>)*l5),l4+<span style="color: #800080;">1</span><span style="color: #000000;">,l5);
+
+  </span><span style="color: #0000ff;">end</span>
+%%%%%%%%%%%%%%% <span style="color: #0000ff;">END</span> <span style="color: #0000ff;">OF</span> CONJUGATE GRADIENT <span style="color: #0000ff;">WITH</span> <span style="color: #800080;">3</span> LINESEARCHES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ <span style="color: #0000ff;">end</span><span style="color: #000000;">
+
+ save mnistclassify_weights w1 w2 w3 w_class
+ save mnistclassify_error test_err test_crerr train_err train_crerr;
+
+</span><span style="color: #0000ff;">end</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p><em><strong>CG_CLASSIFY_INIT.m:</strong></em></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #0000ff;">function</span> [f, df] = CG_CLASSIFY_INIT(VV,Dim,w3probs,target);%<span style="color: #000000;">只有2层网络
+l1 </span>= Dim(<span style="color: #800080;">1</span><span style="color: #000000;">);
+l2 </span>= Dim(<span style="color: #800080;">2</span><span style="color: #000000;">);
+N </span>= size(w3probs,<span style="color: #800080;">1</span>);%<span style="color: #000000;">N为训练样本的个数
+</span>%<span style="color: #000000;"> Do decomversion.
+  w_class </span>= reshape(VV,l1+<span style="color: #800080;">1</span><span style="color: #000000;">,l2);
+  w3probs </span>= [w3probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];  
+
+  targetout </span>= exp(w3probs*<span style="color: #000000;">w_class);
+  targetout </span>= targetout./repmat(sum(targetout,<span style="color: #800080;">2</span>),<span style="color: #800080;">1</span>,<span style="color: #800080;">10</span><span style="color: #000000;">);
+  f </span>= -sum(sum( target(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>).*log(targetout))) ;%<span style="color: #000000;">f位softmax分类器的误差函数
+IO </span>= (targetout-target(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span><span style="color: #000000;">));
+Ix_class</span>=<span style="color: #000000;">IO; 
+dw_class </span>=  w3probs<span style="color: #800000;">'</span><span style="color: #800000;">*Ix_class; %偏导值</span>
+<span style="color: #000000;">
+df </span>= [dw_class(:)<span style="color: #800000;">'</span><span style="color: #800000;">]</span><span style="color: #800000;">'</span>; </pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p><em><strong>CG_CLASSIFY.m:</strong></em></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #0000ff;">function</span> [f, df] =<span style="color: #000000;"> CG_CLASSIFY(VV,Dim,XX,target);
+
+l1 </span>= Dim(<span style="color: #800080;">1</span><span style="color: #000000;">);
+l2 </span>= Dim(<span style="color: #800080;">2</span><span style="color: #000000;">);
+l3</span>= Dim(<span style="color: #800080;">3</span><span style="color: #000000;">);
+l4</span>= Dim(<span style="color: #800080;">4</span><span style="color: #000000;">);
+l5</span>= Dim(<span style="color: #800080;">5</span><span style="color: #000000;">);
+N </span>= size(XX,<span style="color: #800080;">1</span><span style="color: #000000;">);
+
+</span>%<span style="color: #000000;"> Do decomversion.
+ w1 </span>= reshape(VV(<span style="color: #800080;">1</span>:(l1+<span style="color: #800080;">1</span>)*l2),l1+<span style="color: #800080;">1</span><span style="color: #000000;">,l2);
+ xxx </span>= (l1+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l2;
+ w2 </span>= reshape(VV(xxx+<span style="color: #800080;">1</span>:xxx+(l2+<span style="color: #800080;">1</span>)*l3),l2+<span style="color: #800080;">1</span><span style="color: #000000;">,l3);
+ xxx </span>= xxx+(l2+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l3;
+ w3 </span>= reshape(VV(xxx+<span style="color: #800080;">1</span>:xxx+(l3+<span style="color: #800080;">1</span>)*l4),l3+<span style="color: #800080;">1</span><span style="color: #000000;">,l4);
+ xxx </span>= xxx+(l3+<span style="color: #800080;">1</span>)*<span style="color: #000000;">l4;
+ w_class </span>= reshape(VV(xxx+<span style="color: #800080;">1</span>:xxx+(l4+<span style="color: #800080;">1</span>)*l5),l4+<span style="color: #800080;">1</span><span style="color: #000000;">,l5);
+
+
+  XX </span>= [XX ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w1probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-XX*w1)); w1probs = [w1probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w2probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w1probs*w2)); w2probs = [w2probs ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+  w3probs </span>= <span style="color: #800080;">1</span>./(<span style="color: #800080;">1</span> + exp(-w2probs*w3)); w3probs = [w3probs  ones(N,<span style="color: #800080;">1</span><span style="color: #000000;">)];
+
+  targetout </span>= exp(w3probs*<span style="color: #000000;">w_class);
+  targetout </span>= targetout./repmat(sum(targetout,<span style="color: #800080;">2</span>),<span style="color: #800080;">1</span>,<span style="color: #800080;">10</span><span style="color: #000000;">);
+  f </span>= -sum(sum( target(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>).*<span style="color: #000000;">log(targetout))) ;
+
+IO </span>= (targetout-target(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span><span style="color: #000000;">));
+Ix_class</span>=<span style="color: #000000;">IO; 
+dw_class </span>=  w3probs<span style="color: #800000;">'</span><span style="color: #800000;">*Ix_class; </span>
+<span style="color: #000000;">
+Ix3 </span>= (Ix_class*w_class<span style="color: #800000;">'</span><span style="color: #800000;">).*w3probs.*(1-w3probs);</span>
+Ix3 = Ix3(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span><span style="color: #000000;">);
+dw3 </span>=  w2probs<span style="color: #800000;">'</span><span style="color: #800000;">*Ix3;</span>
+<span style="color: #000000;">
+Ix2 </span>= (Ix3*w3<span style="color: #800000;">'</span><span style="color: #800000;">).*w2probs.*(1-w2probs); </span>
+Ix2 = Ix2(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span><span style="color: #000000;">);
+dw2 </span>=  w1probs<span style="color: #800000;">'</span><span style="color: #800000;">*Ix2;</span>
+<span style="color: #000000;">
+Ix1 </span>= (Ix2*w2<span style="color: #800000;">'</span><span style="color: #800000;">).*w1probs.*(1-w1probs); </span>
+Ix1 = Ix1(:,<span style="color: #800080;">1</span>:<span style="color: #0000ff;">end</span>-<span style="color: #800080;">1</span><span style="color: #000000;">);
+dw1 </span>=  XX<span style="color: #800000;">'</span><span style="color: #800000;">*Ix1;</span>
+<span style="color: #000000;">
+df </span>= [dw1(:)<span style="color: #800000;">'</span><span style="color: #800000;"> dw2(:)</span><span style="color: #800000;">'</span> dw3(:)<span style="color: #800000;">'</span><span style="color: #800000;"> dw_class(:)</span><span style="color: #800000;">'</span>]<span style="color: #800000;">'</span><span style="color: #800000;">; </span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./用NN实现数据降维练习_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p><span style="line-height: 1.5;">&nbsp;</span></p>
+<p>&nbsp;　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">实验总结：</span></strong></span></p>
+<p>　　 1. 终于阅读了一个RBM的源码了，以前看那些各种公式的理论，现在有了对应的code，读对应的code起来就是爽！</p>
+<p>　　 2. 这里由于用的是整个图片进行训练（不是用的它们的patch部分），所以没有对应的convolution和pooling，因此预训练网络结构时下一个rbm网络的输入就是上一个rbm网络的输出，且当没有加入softmax时的微调阶段用的依旧是无监督的学习（此时的标签依旧为原始的输入数据）；而当加入了softmax后的微调部分用的就是训练样本的真实标签了，因为此时需要进行分类。</p>
+<p>　　 3. 深度越深，则网络的微调时间越长，需要很多时间收敛，即使是进行了预训练。</p>
+<p>　　 4. 暂时还没弄懂要是针对大图片采用covolution训练时，第二层网络的数据来源是什么，有可能和上面的一样，是上层网络的输出（但是此时微调怎么办呢，不用标签数据？）也有可能是大图片经过第一层网络covolution，pooling后的输出值（如果是这样的话，网络的代价函数就不好弄了，因为里面有convolution和pooling操作）。</p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">参考资料：</span></strong></span></p>
+<p>&nbsp; &nbsp; &nbsp;<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html"><strong>Deep learning</strong><strong>：三十四(</strong><strong>用NN</strong><strong>实现数据的降维)</strong></a></p>
+<p>　　reducing the dimensionality of data with neural networks</p>
+<p>&nbsp; &nbsp; &nbsp;<a href="http://www.cs.toronto.edu/~hinton/MatlabForSciencePaper.html">http://www.cs.toronto.edu/~hinton/MatlabForSciencePaper.html</a></p>
+<p><strong>&nbsp; &nbsp; &nbsp;<a href="http://www.cnblogs.com/xfzhang/archive/2010/11/25/1887214.html">取模（mod）与取余（rem）的区别——Matlab学习笔记</a></strong></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p></div><div id="MySignature" style="display: block;">作者：tornadomeet
+
+出处：http://www.cnblogs.com/tornadomeet
+
+欢迎转载或分享，但请务必声明文章出处。      （新浪微博：tornadomeet,欢迎交流！）</div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory">分类: <a href="http://www.cnblogs.com/tornadomeet/category/361811.html" target="_blank">机器学习</a>,<a href="http://www.cnblogs.com/tornadomeet/category/497607.html" target="_blank">Deep Learning</a></div>
+<div id="EntryTag">标签: <a href="http://www.cnblogs.com/tornadomeet/tag/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a>, <a href="http://www.cnblogs.com/tornadomeet/tag/Deep%20Learning/">Deep Learning</a></div>
+<div id="blog_post_info"><div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(3052349,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+            <a id="green_channel_follow" onclick="follow(&#39;dae176a9-cc64-e111-aa3f-842b2b196315&#39;);" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./用NN实现数据降维练习_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="./用NN实现数据降维练习_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/tornadomeet/" target="_blank"><img src="./用NN实现数据降维练习_files/sample_face.gif" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/tornadomeet/">tornadomeet</a><br>
+            <a href="http://home.cnblogs.com/u/tornadomeet/followees">关注 - 46</a><br>
+            <a href="http://home.cnblogs.com/u/tornadomeet/followers">粉丝 - 3269</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow(&#39;dae176a9-cc64-e111-aa3f-842b2b196315&#39;);return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(3052349,&#39;Digg&#39;)">
+        <span class="diggnum" id="digg_count">8</span>
+    </div>
+    <div class="buryit" onclick="votePost(3052349,&#39;Bury&#39;)">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html" class="p_n_p_prefix">« </a> 上一篇：<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html" title="发布于2013-04-29 22:52">Deep learning：三十四(用NN实现数据的降维)</a><br><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/01/3053238.html" class="p_n_p_prefix">» </a> 下一篇：<a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/01/3053238.html" title="发布于2013-05-01 15:32">Deep learning：三十六(关于构建深度卷积SAE网络的一点困惑)</a><br></div>
+</div>
+
+
+	<div class="postDesc">posted on <span id="post-date">2013-04-30 20:03</span> <a href="http://www.cnblogs.com/tornadomeet/">tornadomeet</a> 阅读(<span id="post_view_count">17802</span>) 评论(<span id="post_comment_count">73</span>)  <a href="https://i.cnblogs.com/EditPosts.aspx?postid=3052349" rel="nofollow">编辑</a> <a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#" onclick="AddToWz(3052349);return false;">收藏</a></div>
+</div>
+<script type="text/javascript">var allowComments=true,cb_blogId=110408,cb_entryId=3052349,cb_blogApp=currentBlogApp,cb_blogUserGuid='dae176a9-cc64-e111-aa3f-842b2b196315',cb_entryCreatedDate='2013/4/30 20:03:00';loadViewCount(cb_entryId);</script>
+
+</div><a name="!comments"></a><div id="blog-comments-placeholder"><div id="comments_pager_top"><div class="pager"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#!comments" onclick="commentManager.renderComments(1,50);return false;">&lt; Prev</a><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#!comments" onclick="commentManager.renderComments(1,50);return false;">1</a><span class="current">2</span></div></div>
+<!--done-->
+<br>
+<b>评论:</b>
+<div class="feedbackNoItems"></div>
+	
+
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2862802" class="layer">#51楼</a><a name="2862802" id="comment_anchor_2862802"></a>
+				 <span class="comment_date">2014-01-16 18:13</span> | <a id="a_comment_author_2862802" href="http://home.cnblogs.com/u/576496/" target="_blank">进击的城管</a> <a href="http://msg.cnblogs.com/send/%E8%BF%9B%E5%87%BB%E7%9A%84%E5%9F%8E%E7%AE%A1" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2862802" class="blog_comment_body">博主，再问个问题，mfcc可不可以像傅立叶变换那样进行逆变换完全重构出原来的数据呀？我看了mfcc的过程···判断不了··</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2862802,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2862802,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2865558" class="layer">#52楼</a><a name="2865558" id="comment_anchor_2865558"></a>[<span class="louzhu">楼主</span>]
+				 <span class="comment_date">2014-01-21 16:38</span> | <a id="a_comment_author_2865558" href="http://www.cnblogs.com/tornadomeet/" target="_blank">tornadomeet</a> <a href="http://msg.cnblogs.com/send/tornadomeet" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2865558" class="blog_comment_body"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2861886" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,2861886);">@</a>
+进击的城管<br>mfcc得到的数据直接归一化到-1到1之间就可以了。<br>后面的问题没看明白。</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2865558,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2865558,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2865561" class="layer">#53楼</a><a name="2865561" id="comment_anchor_2865561"></a>[<span class="louzhu">楼主</span>]
+				 <span class="comment_date">2014-01-21 16:42</span> | <a id="a_comment_author_2865561" href="http://www.cnblogs.com/tornadomeet/" target="_blank">tornadomeet</a> <a href="http://msg.cnblogs.com/send/tornadomeet" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2865561" class="blog_comment_body"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2862802" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,2862802);">@</a>
+进击的城管<br>中间有滤波操作，重构不了吧，我对mfcc也不熟悉</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2865561,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2865561,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2910409" class="layer">#54楼</a><a name="2910409" id="comment_anchor_2910409"></a>
+				 <span class="comment_date">2014-04-03 09:57</span> | <a id="a_comment_author_2910409" href="http://home.cnblogs.com/u/620101/" target="_blank">weihli</a> <a href="http://msg.cnblogs.com/send/weihli" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2910409" class="blog_comment_body">对于输入为二值时，微调是通过最小化交叉熵来实现，即最小化f = -1/N*sum(sum( XX(:,1:end-1).*log(XXout) + (1-XX(:,1:end-1)).*log(1-XXout))); 但对于输入是连续值时这个公式就不能用了，是否要改成MSE</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2910409,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2910409,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2920680" class="layer">#55楼</a><a name="2920680" id="comment_anchor_2920680"></a>
+				 <span class="comment_date">2014-04-18 15:35</span> | <a id="a_comment_author_2920680" href="http://home.cnblogs.com/u/625332/" target="_blank">我读书少你可别骗我</a> <a href="http://msg.cnblogs.com/send/%E6%88%91%E8%AF%BB%E4%B9%A6%E5%B0%91%E4%BD%A0%E5%8F%AF%E5%88%AB%E9%AA%97%E6%88%91" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2920680" class="blog_comment_body">博主 请问我用MATLAB2010b跑的时候 converter.m会报错<br>??? Error using ==&gt; fread<br>Invalid file identifier.  Use fopen to generate a valid file identifier.<br><br>Error in ==&gt; converter at 35<br>[a,count] = fread(f,4,'int32');<br>这是为什么？</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2920680,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2920680,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2933265" class="layer">#56楼</a><a name="2933265" id="comment_anchor_2933265"></a>
+				 <span class="comment_date">2014-05-06 21:57</span> | <a id="a_comment_author_2933265" href="http://home.cnblogs.com/u/631067/" target="_blank">柳岸清风</a> <a href="http://msg.cnblogs.com/send/%E6%9F%B3%E5%B2%B8%E6%B8%85%E9%A3%8E" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2933265" class="blog_comment_body"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2920680" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,2920680);">@</a>
+我读书少你可别骗我<br>可能是上一句fopen（）里面那个文件名书写有点问题，中间一个破折号，而原始文件那个地方是个点</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2933265,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2933265,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2933269" class="layer">#57楼</a><a name="2933269" id="comment_anchor_2933269"></a>
+				 <span class="comment_date">2014-05-06 21:58</span> | <a id="a_comment_author_2933269" href="http://home.cnblogs.com/u/631067/" target="_blank">柳岸清风</a> <a href="http://msg.cnblogs.com/send/%E6%9F%B3%E5%B2%B8%E6%B8%85%E9%A3%8E" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2933269" class="blog_comment_body">请教楼主，我运行这个程序时候总是out of memory，有什么办法可以解决吗？</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2933269,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2933269,&#39;Bury&#39;,this)">反对(1)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2936122" class="layer">#58楼</a><a name="2936122" id="comment_anchor_2936122"></a>
+				 <span class="comment_date">2014-05-10 16:49</span> | <a id="a_comment_author_2936122" href="http://home.cnblogs.com/u/608730/" target="_blank">Alex钟</a> <a href="http://msg.cnblogs.com/send/Alex%E9%92%9F" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2936122" class="blog_comment_body">请问有无尝试过改hinton的程序，例如将隐藏层3层，改为2层或者1层，希望得到你的回答</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2936122,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2936122,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2941247" class="layer">#59楼</a><a name="2941247" id="comment_anchor_2941247"></a>[<span class="louzhu">楼主</span>]
+				 <span class="comment_date">2014-05-18 18:46</span> | <a id="a_comment_author_2941247" href="http://www.cnblogs.com/tornadomeet/" target="_blank">tornadomeet</a> <a href="http://msg.cnblogs.com/send/tornadomeet" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2941247" class="blog_comment_body"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2910409" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,2910409);">@</a>
+weihli<br>也是可以的。只要数据归一化到(0,1)之间都可以用交叉熵。</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2941247,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2941247,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2941248" class="layer">#60楼</a><a name="2941248" id="comment_anchor_2941248"></a>[<span class="louzhu">楼主</span>]
+				 <span class="comment_date">2014-05-18 18:47</span> | <a id="a_comment_author_2941248" href="http://www.cnblogs.com/tornadomeet/" target="_blank">tornadomeet</a> <a href="http://msg.cnblogs.com/send/tornadomeet" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2941248" class="blog_comment_body"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2936122" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,2936122);">@</a>
+Alex钟<br>没改过</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2941248,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2941248,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2956194" class="layer">#61楼</a><a name="2956194" id="comment_anchor_2956194"></a>
+				 <span class="comment_date">2014-06-02 19:09</span> | <a id="a_comment_author_2956194" href="http://home.cnblogs.com/u/639260/" target="_blank">嘎吱</a> <a href="http://msg.cnblogs.com/send/%E5%98%8E%E5%90%B1" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2956194" class="blog_comment_body">博主好，有个问题想请教。就是我用hinton论文中的的深度的autoencoder压缩部分进行数据处理的时候，输入的数据全部是非负的，降维之后出现了负值，这个是合理的吗</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2956194,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2956194,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2958006" class="layer">#62楼</a><a name="2958006" id="comment_anchor_2958006"></a>[<span class="louzhu">楼主</span>]
+				 <span class="comment_date">2014-06-05 00:12</span> | <a id="a_comment_author_2958006" href="http://www.cnblogs.com/tornadomeet/" target="_blank">tornadomeet</a> <a href="http://msg.cnblogs.com/send/tornadomeet" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2958006" class="blog_comment_body"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2956194" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,2956194);">@</a>
+嘎吱<br>看重构是否可接受。</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2958006,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2958006,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2990848" class="layer">#63楼</a><a name="2990848" id="comment_anchor_2990848"></a>
+				 <span class="comment_date">2014-07-20 14:17</span> | <a id="a_comment_author_2990848" href="http://home.cnblogs.com/u/571519/" target="_blank">Tsien</a> <a href="http://msg.cnblogs.com/send/Tsien" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2990848" class="blog_comment_body">LZ，第一个实验中，第四层RBM训练用的是rbmhidlinear.m，能否注释一下这个文件，以及为啥最后一层要这么处理？</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2990848,&#39;Digg&#39;,this)">支持(1)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2990848,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#3015284" class="layer">#64楼</a><a name="3015284" id="comment_anchor_3015284"></a>
+				 <span class="comment_date">2014-08-23 16:19</span> | <a id="a_comment_author_3015284" href="http://home.cnblogs.com/u/653071/" target="_blank">codding</a> <a href="http://msg.cnblogs.com/send/codding" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3015284" class="blog_comment_body">很喜欢博主的文章，刚刚用豆约翰博客备份专家备份了您的全部博文。</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3015284,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3015284,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#3051879" class="layer">#65楼</a><a name="3051879" id="comment_anchor_3051879"></a>
+				 <span class="comment_date">2014-10-27 15:46</span> | <a id="a_comment_author_3051879" href="http://home.cnblogs.com/u/266565/" target="_blank">lishan</a> <a href="http://msg.cnblogs.com/send/lishan" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3051879" class="blog_comment_body">@weihli<br>代码中就是连续的呀，cost也是用交叉熵计算的。<br>里面压根就没有MSE</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3051879,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3051879,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#3142983" class="layer">#66楼</a><a name="3142983" id="comment_anchor_3142983"></a>
+				 <span class="comment_date">2015-03-17 17:45</span> | <a id="a_comment_author_3142983" href="http://home.cnblogs.com/u/458970/" target="_blank">xiaoYY</a> <a href="http://msg.cnblogs.com/send/xiaoYY" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3142983" class="blog_comment_body"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2990848" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,2990848);">@</a>
+Tsien<br>你好，我也对这有疑问，请问现在 你搞懂了吗？</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3142983,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3142983,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#3166514" class="layer">#67楼</a><a name="3166514" id="comment_anchor_3166514"></a>
+				 <span class="comment_date">2015-04-20 19:09</span> | <a id="a_comment_author_3166514" href="http://home.cnblogs.com/u/747380/" target="_blank">mingzailao</a> <a href="http://msg.cnblogs.com/send/mingzailao" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3166514" class="blog_comment_body">看了博主的前面几篇文章，写的很用心啊 ~~赞<br><br>最近就在看Hinton的这篇论文A Fast Learning Algorithm for Deep Belief Nets<br><br>问一下一个问题，可以详细讲解一下momentum的作用么？？</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3166514,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3166514,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#3190522" class="layer">#68楼</a><a name="3190522" id="comment_anchor_3190522"></a>
+				 <span class="comment_date">2015-05-22 15:18</span> | <a id="a_comment_author_3190522" href="http://home.cnblogs.com/u/760631/" target="_blank">suiyue2959</a> <a href="http://msg.cnblogs.com/send/suiyue2959" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3190522" class="blog_comment_body">文章写得不错，思路给的很清晰。只是换成我们自己的数据可以用吗，他们的数据结构我咋就没看懂</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3190522,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3190522,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#3376542" class="layer">#69楼</a><a name="3376542" id="comment_anchor_3376542"></a>
+				 <span class="comment_date">2016-03-10 10:06</span> | <a id="a_comment_author_3376542" href="http://home.cnblogs.com/u/909845/" target="_blank">夏洛的雨</a> <a href="http://msg.cnblogs.com/send/%E5%A4%8F%E6%B4%9B%E7%9A%84%E9%9B%A8" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3376542" class="blog_comment_body"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#2990848" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,2990848);">@</a>
+Tsien<br>层主搞懂了没？我也看不懂第四层训练用的是rbmhidlinear.m，特别是rbm.m中用的是poshidstates = poshidprobs &gt; rand(numcases,numhid);而rbmhidlinear.m中用的是poshidstates = poshidprobs+randn(numcases,numhid)这两处的区别，层主搞懂了能不能分享下？谢谢</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3376542,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3376542,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#3406281" class="layer">#70楼</a><a name="3406281" id="comment_anchor_3406281"></a>
+				 <span class="comment_date">2016-04-12 18:35</span> | <a id="a_comment_author_3406281" href="http://home.cnblogs.com/u/934838/" target="_blank">张星星爱吃肉</a> <a href="http://msg.cnblogs.com/send/%E5%BC%A0%E6%98%9F%E6%98%9F%E7%88%B1%E5%90%83%E8%82%89" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3406281" class="blog_comment_body">楼主，我想问一下训练数据为什么是100*784*600，不能直接用60000*784吗？</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3406281,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3406281,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#3406650" class="layer">#71楼</a><a name="3406650" id="comment_anchor_3406650"></a>
+				 <span class="comment_date">2016-04-13 08:46</span> | <a id="a_comment_author_3406650" href="http://home.cnblogs.com/u/935018/" target="_blank">patoganso</a> <a href="http://msg.cnblogs.com/send/patoganso" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3406650" class="blog_comment_body">博主，我想请教你一个问题：<br><br>如果我想做特征提取，那么RBM里的batchposhidprobs，是不是可以理解为针对原始训练样本据提炼出的特征，它就可以用来替代训练样本。<br><br>此外，之后的测试样本，是不是就可以通过公式<br>poshidprobs = 1./(1 + exp(-data*vishid -<br>repmat(hidbiases,numcases,1)));来计算其特征？</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3406650,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3406650,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#3476654" class="layer">#72楼</a><a name="3476654" id="comment_anchor_3476654"></a>
+				 <span class="comment_date">2016-07-26 09:52</span> | <a id="a_comment_author_3476654" href="http://home.cnblogs.com/u/995019/" target="_blank">好好先生945</a> <a href="http://msg.cnblogs.com/send/%E5%A5%BD%E5%A5%BD%E5%85%88%E7%94%9F945" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3476654" class="blog_comment_body">mnistdeepauto和mnistclassify都跑完以后接下来应该干什么</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3476654,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3476654,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#3525846" class="layer">#73楼</a><a name="3525846" id="comment_anchor_3525846"></a><span id="comment-maxId" style="display:none;">3525846</span><span id="comment-maxDate" style="display:none;">2016/10/8 17:20:05</span>
+				 <span class="comment_date">2016-10-08 17:20</span> | <a id="a_comment_author_3525846" href="http://www.cnblogs.com/yycd/" target="_blank">yyyy1</a> <a href="http://msg.cnblogs.com/send/yyyy1" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3525846" class="blog_comment_body">请问在CG_MNIST函数中偏置是不是没有处理啊？你看它的标号是1：end-1</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3525846,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3525846,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+
+
+
+<div id="comments_pager_bottom"><div class="pager"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#!comments" onclick="commentManager.renderComments(1,50);return false;">&lt; Prev</a><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#!comments" onclick="commentManager.renderComments(1,50);return false;">1</a><span class="current">2</span></div></div></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id="comment_form" class="commentform">
+<a name="commentform"></a>
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#" onclick="return RefreshPage();">刷新页面</a><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html#top">返回顶部</a></div>
+<div id="comment_form_container"><div class="login_tips">注册用户登录后才能发表评论，请 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login(&#39;commentform&#39;);">登录</a> 或 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，<a href="http://www.cnblogs.com/">访问</a>网站首页。</div></div>
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+<div id="ad_t2"><a href="http://www.ucancode.com/index.htm" target="_blank">【推荐】50万行VC++源码: 大型组态工控、电力仿真CAD与GIS源码库</a><br><a href="http://rongcloud.cn/reports/journal2" target="_blank">【推荐】融云发布 App 社交化白皮书 IM 提升活跃超 8 倍</a><br><a href="http://arcapp.anruichina.com/arctrac/trac?tid=smb_azure_1212_CNBlog" target="_blank">【福利】Microsoft Azure给博客园的你专属三重大礼</a><br><a href="http://bbs.h3bpm.com/read.php?tid=861&amp;fid=11?utm_source=cnblogs&amp;utm_medium=pic&amp;utm_campaign=show&amp;utm_content=v10&amp;utm_term=%E5%85%8D%E8%B4%B9%E4%B8%8B%E8%BD%BD" target="_blank">【推荐】BPM免费下载</a><br></div>
+<div id="opt_under_post"></div>
+<div id="ad_c1" class="c_ad_block"><a href="http://www.gcpowertools.com.cn/products/activereports_overview.htm?utm_source=cnblogs&amp;utm_medium=blogpage&amp;utm_term=bottom&amp;utm_content=AR&amp;utm_campaign=community" target="_blank"><img width="300" height="250" src="./用NN实现数据降维练习_files/24442-20161115165230123-1587531896.png" alt=""></a></div>
+<div id="under_post_news"><div class="itnews c_ad_block"><b>最新IT新闻</b>:<br> ·  <a href="http://news.cnblogs.com/n/559178/" target="_blank">中国科学家成功将3D打印血管植入动物体内</a><br> ·  <a href="http://news.cnblogs.com/n/559177/" target="_blank">人人公司第三季度净亏损2280万美元 同比收窄</a><br> ·  <a href="http://news.cnblogs.com/n/559176/" target="_blank">微软参加2017 MWC，尽管没Surface Phone但会传达很多信息</a><br> ·  <a href="http://news.cnblogs.com/n/559175/" target="_blank">俞敏洪：现在的硅谷特别庸俗，成了一个跟风的地方</a><br> ·  <a href="http://news.cnblogs.com/n/559174/" target="_blank">AWS发布最新云成本预算工具 助企业实现云成本控制</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div></div>
+<div id="ad_c2" class="c_ad_block"><a href="http://bbs.h3bpm.com/read.php?tid=861&amp;fid=11?utm_source=cnblogs&amp;utm_medium=pic&amp;utm_campaign=show&amp;utm_content=v10&amp;utm_term=%E5%85%8D%E8%B4%B9%E4%B8%8B%E8%BD%BD" target="_blank"><img width="468" height="60" src="./用NN实现数据降维练习_files/35695-20161213142353073-1602158633.jpg" alt=""></a></div>
+<div id="under_post_kb"><div class="itnews c_ad_block" id="kb_block"><b>最新知识库文章</b>:<br><div id="kb_recent"> ·  <a href="http://kb.cnblogs.com/page/558087/" target="_blank">高质量的工程代码为什么难写</a><br> ·  <a href="http://kb.cnblogs.com/page/555750/" target="_blank">循序渐进地代码重构</a><br> ·  <a href="http://kb.cnblogs.com/page/554496/" target="_blank">技术的正宗与野路子</a><br> ·  <a href="http://kb.cnblogs.com/page/553682/" target="_blank">陈皓：什么是工程师文化？</a><br> ·  <a href="http://kb.cnblogs.com/page/551422/" target="_blank">没那么难，谈CSS的设计模式</a><br></div>» <a href="http://kb.cnblogs.com/" target="_blank">更多知识库文章...</a></div></div>
+<div id="HistoryToday" class="c_ad_block"></div>
+<script type="text/javascript">
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+</div>
+<div id="leftcontent">
+	
+		<div id="leftcontentcontainer">
+			
+<!--done-->
+<div class="newsItem">
+	<div id="blog-news"><div id="profile_block">昵称：<a href="http://home.cnblogs.com/u/tornadomeet/">tornadomeet</a><br>园龄：<a href="http://home.cnblogs.com/u/tornadomeet/" title="入园时间：2012-03-03">4年9个月</a><br>粉丝：<a href="http://home.cnblogs.com/u/tornadomeet/followers/">3269</a><br>关注：<a href="http://home.cnblogs.com/u/tornadomeet/followees/">46</a><div id="p_b_follow"><a href="javascript:void(0);" onclick="follow(&#39;dae176a9-cc64-e111-aa3f-842b2b196315&#39;)">+加关注</a></div></div></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="blog-calendar" style=""><table id="blogCalendar" class="Cal" cellspacing="0" cellpadding="0" title="Calendar">
+	<tbody><tr><td colspan="7"><table class="CalTitle" cellspacing="0">
+		<tbody><tr><td class="CalNextPrev"><a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2013/03/01&#39;);return false;">&lt;</a></td><td align="center">2013年4月</td><td class="CalNextPrev" align="right"><a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2013/05/01&#39;);return false;">&gt;</a></td></tr>
+	</tbody></table></td></tr><tr><th class="CalDayHeader" align="center" abbr="日" scope="col">日</th><th class="CalDayHeader" align="center" abbr="一" scope="col">一</th><th class="CalDayHeader" align="center" abbr="二" scope="col">二</th><th class="CalDayHeader" align="center" abbr="三" scope="col">三</th><th class="CalDayHeader" align="center" abbr="四" scope="col">四</th><th class="CalDayHeader" align="center" abbr="五" scope="col">五</th><th class="CalDayHeader" align="center" abbr="六" scope="col">六</th></tr><tr><td class="CalOtherMonthDay" align="center">31</td><td align="center">1</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/02.html"><u>2</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/03.html"><u>3</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/04.html"><u>4</u></a></td><td align="center">5</td><td class="CalWeekendDay" align="center">6</td></tr><tr><td class="CalWeekendDay" align="center">7</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/08.html"><u>8</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09.html"><u>9</u></a></td><td align="center">10</td><td align="center">11</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/12.html"><u>12</u></a></td><td class="CalWeekendDay" align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/13.html"><u>13</u></a></td></tr><tr><td class="CalWeekendDay" align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/14.html"><u>14</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/15.html"><u>15</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/16.html"><u>16</u></a></td><td align="center">17</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/18.html"><u>18</u></a></td><td align="center">19</td><td class="CalWeekendDay" align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/20.html"><u>20</u></a></td></tr><tr><td class="CalWeekendDay" align="center">21</td><td align="center">22</td><td align="center">23</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24.html"><u>24</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/25.html"><u>25</u></a></td><td align="center">26</td><td class="CalWeekendDay" align="center">27</td></tr><tr><td class="CalWeekendDay" align="center">28</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29.html"><u>29</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30.html"><u>30</u></a></td><td class="CalOtherMonthDay" align="center">1</td><td class="CalOtherMonthDay" align="center">2</td><td class="CalOtherMonthDay" align="center">3</td><td class="CalOtherMonthDay" align="center">4</td></tr><tr><td class="CalOtherMonthDay" align="center">5</td><td class="CalOtherMonthDay" align="center">6</td><td class="CalOtherMonthDay" align="center">7</td><td class="CalOtherMonthDay" align="center">8</td><td class="CalOtherMonthDay" align="center">9</td><td class="CalOtherMonthDay" align="center">10</td><td class="CalOtherMonthDay" align="center">11</td></tr>
+</tbody></table></div><script type="text/javascript">loadBlogDefaultCalendar();</script><br>
+			<div id="blog-sidecolumn"><div id="sidebar_search" class="sidebar-block">
+<div id="sidebar_search" class="mySearch">
+<h3 class="catListTitle">搜索</h3>
+<div id="sidebar_search_box">
+<div id="widget_my_zzk" class="div_my_zzk"><input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk"></div>
+<div id="widget_my_google" class="div_my_zzk"><input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event)" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk"></div>
+</div>
+</div>
+
+</div><div id="sidebar_shortcut" class="sidebar-block">
+<h3 class="catListTitle">常用链接</h3>
+<ul>
+<li><a href="http://www.cnblogs.com/tornadomeet/p/" title="我的博客的随笔列表">我的随笔</a></li><li><a href="http://www.cnblogs.com/tornadomeet/MyComments.html" title="我发表过的评论列表">我的评论</a></li><li><a href="http://www.cnblogs.com/tornadomeet/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li><li><a href="http://www.cnblogs.com/tornadomeet/RecentComments.html" title="我的博客的评论列表">最新评论</a></li><li><a href="http://www.cnblogs.com/tornadomeet/tag/" title="我的博客的标签列表">我的标签</a></li>
+</ul>
+<div id="itemListLin_con" style="display:none;">
+
+</div></div><div id="sidebar_toptags" class="sidebar-block">
+<h3 class="catListTitle">我的标签</h3>
+<div id="MyTag">
+<ul>
+<li><a href="http://www.cnblogs.com/tornadomeet/tag/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a>(72)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/Deep%20Learning/">Deep Learning</a>(51)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/opencv/">opencv</a>(34)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/%E5%9F%BA%E7%A1%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8Bopencv/">基础学习笔记之opencv</a>(24)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/Android%E5%BC%80%E5%8F%91%E5%8E%86%E7%A8%8B/">Android开发历程</a>(18)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/matlab/">matlab</a>(16)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/reading%20papers/">reading papers</a>(16)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/%E6%80%BB%E7%BB%93%E7%B3%BB%E5%88%97/">总结系列</a>(15)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/Qt%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%B7%AF/">Qt学习之路</a>(14)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/OpenNI/">OpenNI</a>(14)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/">更多</a></li>
+</ul>
+</div></div><div id="sidebar_categories">
+		<h3 class="catListTitle">随笔分类<span style="font-size:11px;font-weight:normal">(468)</span></h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_0" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/400063.html">Android(19)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_1" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362086.html">ARM</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_2" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362087.html">C/C++(6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_3" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361470.html">CV(47)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_4" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/497607.html">Deep Learning(51)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_5" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361469.html">DIP(7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_6" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/437087.html">Eigen(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_7" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361817.html">FPGA</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_8" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/366103.html">IR(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_9" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/400062.html">Java</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_10" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/416316.html">Kinect(15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_11" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361818.html">Linux(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_12" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361467.html">matlab(17)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_13" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361466.html">OpenCV(57)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_14" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/406166.html">OpenGL(7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_15" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/416317.html">OpenNI(14)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_16" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/379510.html">Paper(8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_17" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/374732.html">Qt(36)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_18" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361814.html">Robot(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_19" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/402881.html">XML(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_20" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361815.html">单片机</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_21" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361816.html">电子设计</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_22" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/599067.html">感悟总结(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_23" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361811.html">机器学习(91)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_24" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/371256.html">计算机网络(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_25" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/375969.html">控制理论(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_26" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361812.html">模式识别(11)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_27" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361819.html">嵌入式</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_28" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361813.html">人工智能(8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_29" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362088.html">神经网络(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_30" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/444797.html">手势识别(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_31" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/426653.html">数据结构(6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_32" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/489160.html">数据挖掘(13)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_33" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/370489.html">数学(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_34" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362085.html">数字信号处理(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_35" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361810.html">算法(7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_36" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/366102.html">语音处理(4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_37" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/376567.html">总结(24)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_38" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/370949.html">最优化(2)</a></li>
+			
+				</ul>
+			
+	
+		<h3 class="catListTitle">随笔档案<span style="font-size:11px;font-weight:normal">(252)</span></h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_0" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2014/07.html">2014年7月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_1" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2014/01.html">2014年1月 (6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_2" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/12.html">2013年12月 (3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_3" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/11.html">2013年11月 (7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_4" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/10.html">2013年10月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_5" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/09.html">2013年9月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_6" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/08.html">2013年8月 (6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_7" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/07.html">2013年7月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_8" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/06.html">2013年6月 (5)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_9" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/05.html">2013年5月 (8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_10" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/04.html">2013年4月 (18)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_11" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/03.html">2013年3月 (20)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_12" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/02.html">2013年2月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_13" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/01.html">2013年1月 (4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_14" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/12.html">2012年12月 (15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_15" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/11.html">2012年11月 (15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_16" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/10.html">2012年10月 (8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_17" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/09.html">2012年9月 (11)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_18" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/08.html">2012年8月 (24)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_19" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/07.html">2012年7月 (29)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_20" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/06.html">2012年6月 (15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_21" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/05.html">2012年5月 (14)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_22" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/04.html">2012年4月 (14)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_23" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/03.html">2012年3月 (22)</a></li>
+			
+				</ul>
+			
+	
+		<h3 class="catListTitle">文章分类</h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_0" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/599066.html">感悟总结</a></li>
+			
+				</ul>
+			
+	
+</div><div id="sidebar_scorerank" class="sidebar-block">
+<h3>积分与排名</h3>
+<ul>
+	<li>
+		积分 -
+		700600
+	</li><li>
+		排名 -
+		120
+	</li>
+</ul>
+</div><div id="sidebar_recentcomments" class="sidebar-block"><div id="recent_comments_wrap">
+<h3 class="catListTitle">最新评论</h3>
+<div class="RecentComment" id="RecentComments">
+	<div id="RecentCommentsBlock"><ul>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html#3578206">1. Re:Deep learning：三十八(Stacked CNN简单介绍)</a></li>
+        <li class="recent_comment_body">您好，“ C3层的每个特征图并不一定是都与S2层的特征图相连接，有可能只与其中的某几个连接”，这里的“某几个”是按什么样的规律呢，您又是如何选择的呢，期待您的回复</li>
+        <li class="recent_comment_author">--勾勒爱之年华</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/05/24/2515980.html#3577217">2. Re:本人常用资源整理(ing...)</a></li>
+        <li class="recent_comment_body">好人！ 厉害！</li>
+        <li class="recent_comment_author">--ZaneWang</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3434651.html#3574399">3. Re:Deep learning：四十八(Contractive AutoEncoder简单理解)</a></li>
+        <li class="recent_comment_body">博主，紧急求教啊，我主要研究故障诊断方面，但是利用CAE提取特征时发现各种类型的故障提取的特征是一样的，所以我的分类精度只有25%，求指教</li>
+        <li class="recent_comment_author">--qiyumeimei</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/16/3024292.html#3573005">4. Re:Deep learning：二十九(Sparse coding练习)</a></li>
+        <li class="recent_comment_body">@wanwan0508你好，请问这个问题你拓扑结构下这个check的错误率过大的问题解决了吗？我按照楼主注释掉规则化中偏移patches均值那一步骤后，如下% Rescale from [-1,1] ......</li>
+        <li class="recent_comment_author">--三山半</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html#3572155">5. Re:Deep learning：三十八(Stacked CNN简单介绍)</a></li>
+        <li class="recent_comment_body">您好，我现在正在仿照DLtoolbox写CNN，工具箱中我采用了您说的“其中打X了的表示两者之间有连接的”，但是在反向BP的时候，该怎么样进行反向BP的传播呢。</li>
+        <li class="recent_comment_author">--勾勒爱之年华</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/19/2694332.html#3571293">6. Re:Qt学习之路_12(简易数据管理系统)</a></li>
+        <li class="recent_comment_body">求源码 1224373565@qq.com</li>
+        <li class="recent_comment_author">--漫步云海</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3434651.html#3568499">7. Re:Deep learning：四十八(Contractive AutoEncoder简单理解)</a></li>
+        <li class="recent_comment_body">@bigiceberg_请问你解决那个求导的问题了吗？是不是用BP算法求残差再求导？...</li>
+        <li class="recent_comment_author">--qiyumeimei</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3434651.html#3568261">8. Re:Deep learning：四十八(Contractive AutoEncoder简单理解)</a></li>
+        <li class="recent_comment_body">你好，我想问一下那个雅克比矩阵是不是只针对编码网络部分？</li>
+        <li class="recent_comment_author">--qiyumeimei</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/22/2975978.html#3560796">9. Re:Deep learning：十三(Softmax Regression)</a></li>
+        <li class="recent_comment_body">损失函数中指示函数"1{.}"写错了吧。。。应该为“0{.}”？<br>损失函数不是应该在预测正确时不惩罚，预测错误时惩罚么。。貌似写反了。</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/28/2420936.html#3560745">10. Re:基础学习笔记之opencv(3)：haartraining生成.xml文件过程</a></li>
+        <li class="recent_comment_body">博主您好，我在生成.vec文件时，出现了pos.txt(1): parse errorDone. Create 0 samples 请问这是什么问题呢？命令如下：-info pos.txt -vec......</li>
+        <li class="recent_comment_author">--zyriris</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/20/2970724.html#3559683">11. Re:Deep learning：九(Sparse Autoencoder练习)</a></li>
+        <li class="recent_comment_body">想请教几个问题，谁能加我的qq：9315387，谢谢！另外，最后显示的是权重w，显示w有什么意义？不如显示特征</li>
+        <li class="recent_comment_author">--admudzl</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html#3557512">12. Re:Deep learning：五十一(CNN的反向求导及练习)</a></li>
+        <li class="recent_comment_body">楼主你好 ufldl上说在更新参数的时候要在20分钟之内 我的程序跑了40分钟 请问有什么最值得优化的地方 或者说最耗时的地方</li>
+        <li class="recent_comment_author">--kimir17</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/19/2970101.html#3557043">13. Re:Deep learning：八(Sparse Autoencoder)</a></li>
+        <li class="recent_comment_body">“其中的参数一般取很小，比如说0.05，也就是小概率发生事件的概率。这说明要求隐含层的每一个节点的输出均值接近0.05”----楼主能帮忙再解释下么，多谢~</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/18/2966041.html#3556597">14. Re:Deep learning：七(基础知识_2)</a></li>
+        <li class="recent_comment_body">楼主您好。<br>请问“隐含层神经元的个数越多则效果会越好”，这个不绝对吧？</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/26/2704046.html#3554242">15. Re:Kinect+OpenNI学习笔记之1(开发环境的建立)</a></li>
+        <li class="recent_comment_body">楼主，你好。我驱动安装成功后的设备管理器处会显示没有kinect motor，请问你上面的说“手动更新驱动程序到指定的安装目录”如何实现。</li>
+        <li class="recent_comment_author">--骋</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/28/2568634.html#3554202">16. Re:Qt学习之路_4(Qt UDP的初步使用)</a></li>
+        <li class="recent_comment_body">@kyww我也出现过这种情况，不过解决了，你现在解决了吗...</li>
+        <li class="recent_comment_author">--彷徨中前行的我</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/14/2959138.html#3553429">17. Re:Deep learning：一(基础知识_1)</a></li>
+        <li class="recent_comment_body">您好，请问文中“牛顿法不需要选择任何参数”怎么理解？？多谢~~</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/24/2979408.html#3537905">18. Re:Deep learning：十五(Self-Taught Learning练习)</a></li>
+        <li class="recent_comment_body">请问博主，对于这种self taught learning的hiddensize怎么确定？ 我自己用1000个数据试了一下：当hiddensize=200，准确率=90%；当hiddensize = ......</li>
+        <li class="recent_comment_author">--zoey321</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3258122.html#3535043">19. Re:Deep learning：四十一(Dropout简单理解)</a></li>
+        <li class="recent_comment_body">博文里提到的native bayes，应该是naive bayes（朴素贝叶斯）。看了下论文原文，dropout可以看作是bagging的一个特例，博主这里提到的boosting应该是笔误吧，boos......</li>
+        <li class="recent_comment_author">--ChrisZZ</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html#3534132">20. Re:Deep learning：五十一(CNN的反向求导及练习)</a></li>
+        <li class="recent_comment_body">@tornadomeet您好，我想请问一下，怎么换成自己的数据，我想看看效果，希望能指点，谢谢！...</li>
+        <li class="recent_comment_author">--susanwq</li>
+</ul>
+</div>
+</div>
+</div></div><div id="sidebar_topviewedposts" class="sidebar-block"><div id="topview_posts_wrap">
+<h3 class="catListTitle">阅读排行榜</h3>
+<div class="RecentComment" id="TopViewPosts"> 
+	<div id="TopViewPostsBlock"><ul><li><a href="http://www.cnblogs.com/tornadomeet/p/3395593.html">1. 机器学习&amp;数据挖掘笔记_16（常见面试之机器学习算法思想简单梳理）(90565)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html">2. Deep learning：五十一(CNN的反向求导及练习)(65519)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/14/2959138.html">3. Deep learning：一(基础知识_1)(64977)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/27/2984725.html">4. Deep learning：十九(RBM简单理解)(58673)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html">5. Deep learning：三十八(Stacked CNN简单介绍)(57097)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3439503.html">6. Deep learning：四十九(RNN-RBM简单理解)(57046)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3258122.html">7. Deep learning：四十一(Dropout简单理解)(55639)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/22/2975978.html">8. Deep learning：十三(Softmax Regression)(53218)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/26/2834336.html">9. 基础学习笔记之opencv(24)：imwrite函数的使用(53081)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">10. 特征点检测学习_2(surf算法)(52063)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/15/2640754.html">11. opencv源码解析之(6)：hog源码分析(47815)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/20/2970724.html">12. Deep learning：九(Sparse Autoencoder练习)(40991)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/03/2621814.html">13. 目标检测学习_1(用opencv自带hog实现行人检测)(40348)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/15/2398769.html">14. 目标跟踪学习笔记_1(opencv中meanshift和camshift例子的应用)(39298)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/05/24/2515980.html">15. 本人常用资源整理(ing...)(36093)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/22/2651574.html">16. OpenGL_Qt学习笔记之_01(创建一个OpenGL窗口)(34103)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/06/2538695.html">17. 图像分割学习笔记_1(opencv自带meanshift分割例子)(33760)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/06/2673104.html">18. PCA算法学习_1(OpenCV中PCA实现人脸降维)(33413)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/23/2699077.html">19. Qt学习之路_14(简易音乐播放器)(32540)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/22/2411318.html">20. 基础学习笔记之opencv(1)：opencv中facedetect例子浅析(32316)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3261247.html">21. Deep learning：四十二(Denoise Autoencoder简单理解)(32123)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/19/2970101.html">22. Deep learning：八(Sparse Autoencoder)(31793)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/30/2839615.html">23. PCA算法学习_2(PCA理论的matlab实现)(30857)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/28/2568634.html">24. Qt学习之路_4(Qt UDP的初步使用)(29304)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/13/3018393.html">25. Deep learning：二十六(Sparse coding简单理解)(29198)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/16/2643168.html">26. 特征点检测学习_1(sift算法)(29195)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3009830.html">27. Deep learning：二十三(Convolution和Pooling练习)(28069)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/15/2961660.html">28. Deep learning：二(linear regression练习)(27972)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/24/2560261.html">29. 本人部分博客导航(ing...)(27648)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/23/2413363.html">30. HMM学习笔记_1(从一个实例中学习DTW算法)(27168)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/06/2756361.html">31. 一些知识点的初步理解_7(随机森林,ing...)(26074)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/19/2694332.html">32. Qt学习之路_12(简易数据管理系统)(25883)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/30/2571001.html">33. Qt学习之路_5(Qt TCP的初步使用)(25238)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/26/2982694.html">34. Deep learning：十八(关于随机采样)(23701)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/28/2420936.html">35. 基础学习笔记之opencv(3)：haartraining生成.xml文件过程(23687)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415583.html">36. HMM学习笔记_2(从一个实例中学习HMM前向算法)(23567)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/08/2384843.html">37. opencv源码解析之(3)：特征点检查前言1(23246)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/16/2963919.html">38. Deep learning：四(logistic regression练习)(23142)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/23/2783709.html">39. 基础学习笔记之opencv(18)：kmeans函数使用实例(22421)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/19/2646412.html">40. 目标跟踪学习笔记_5(opencv中kalman点跟踪例子)(22227)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap">
+<h3 class="catListTitle">评论排行榜</h3>
+<div class="RecentComment" id="TopCommentsPosts">
+	<div id="TopFeedbackPostsBlock"><ul><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/20/2970724.html">1. Deep learning：九(Sparse Autoencoder练习)(98)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3011209.html">2. Deep learning：二十四(stacked autoencoder练习)(77)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html">3. Deep learning：三十五(用NN实现数据降维练习)(73)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/23/2977621.html">4. Deep learning：十四(Softmax Regression练习)(70)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/16/3024292.html">5. Deep learning：二十九(Sparse coding练习)(66)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/04/2753185.html">6. Kinect+OpenNI学习笔记之12(简单手势所表示的数字的识别)(57)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/24/2979408.html">7. Deep learning：十五(Self-Taught Learning练习)(55)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/28/2420936.html">8. 基础学习笔记之opencv(3)：haartraining生成.xml文件过程(53)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3009830.html">9. Deep learning：二十三(Convolution和Pooling练习)(53)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html">10. Deep learning：三十八(Stacked CNN简单介绍)(53)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html">11. Deep learning：五十一(CNN的反向求导及练习)(44)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415889.html">12. HMM学习笔记_3(从一个实例中学习Viterbi算法)(38)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/08/2384843.html">13. opencv源码解析之(3)：特征点检查前言1(32)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/10/18/2728896.html">14. Kinect+OpenNI学习笔记之8(Robert Walter手部提取代码的分析)(32)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">15. 特征点检测学习_2(surf算法)(31)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/22/2411318.html">16. 基础学习笔记之opencv(1)：opencv中facedetect例子浅析(31)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/10/19/2730891.html">17. Kinect+OpenNI学习笔记之9(不需要骨骼跟踪的人体手部分割)(30)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/15/2640754.html">18. opencv源码解析之(6)：hog源码分析(29)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/08/3007435.html">19. Deep learning：二十二(linear decoder练习)(29)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3874378.html">20. 告别学生时代(28)</a></li></ul></div>
+</div></div></div><div id="sidebar_topdiggedposts" class="sidebar-block"><div id="topdigg_posts_wrap">
+<h3 class="catListTitle">推荐排行榜</h3>
+<div class="RecentComment">
+	<div id="TopDiggPostsBlock"><ul><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/05/24/2515980.html">1. 本人常用资源整理(ing...)(36)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3395593.html">2. 机器学习&amp;数据挖掘笔记_16（常见面试之机器学习算法思想简单梳理）(25)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/14/2959138.html">3. Deep learning：一(基础知识_1)(18)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/15/2640754.html">4. opencv源码解析之(6)：hog源码分析(16)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html">5. Deep learning：三十八(Stacked CNN简单介绍)(11)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/24/2560261.html">6. 本人部分博客导航(ing...)(11)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html">7. Deep learning：三十五(用NN实现数据降维练习)(8)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/04/2753185.html">8. Kinect+OpenNI学习笔记之12(简单手势所表示的数字的识别)(8)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3258122.html">9. Deep learning：四十一(Dropout简单理解)(7)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/12/2766458.html">10. 龙星计划机器学习笔记(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/23/2699077.html">11. Qt学习之路_14(简易音乐播放器)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/22/2698337.html">12. Qt学习之路_13(简易俄罗斯方块)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/19/2694332.html">13. Qt学习之路_12(简易数据管理系统)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">14. 特征点检测学习_2(surf算法)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3874378.html">15. 告别学生时代(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html">16. Deep learning：五十一(CNN的反向求导及练习)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/02/2531565.html">17. 前景检测算法_3(GMM)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/15/2398769.html">18. 目标跟踪学习笔记_1(opencv中meanshift和camshift例子的应用)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415889.html">19. HMM学习笔记_3(从一个实例中学习Viterbi算法)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/04/12/2443993.html">20. 初步体验libsvm用法1(官方自带工具)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415583.html">21. HMM学习笔记_2(从一个实例中学习HMM前向算法)(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/27/2420088.html">22. 基础学习笔记之opencv(2)：haartraining前将统一图片尺寸方法(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/20/2408086.html">23. Matlab DIP(瓦)ch9形态学图像处理(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/16/2643168.html">24. 特征点检测学习_1(sift算法)(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3276753.html">25. 机器学习&amp;数据挖掘笔记_14（GMM-HMM语音识别简单理解）(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3439503.html">26. Deep learning：四十九(RNN-RBM简单理解)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/27/2706417.html">27. Kinect+OpenNI学习笔记之2(获取kinect的颜色图像和深度图像)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/09/2763271.html">28. 基础学习笔记之opencv(16)：grabcut使用例程(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/30/2839615.html">29. PCA算法学习_2(PCA理论的matlab实现)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/15/2961660.html">30. Deep learning：二(linear regression练习)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/12/2813939.html">31. 基础学习笔记之opencv(23)：OpenCV坐标体系的初步认识(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/04/2800701.html">32. 基础学习笔记之opencv(20)：OpenCV中的颜色空间(ing...)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/23/2413363.html">33. HMM学习笔记_1(从一个实例中学习DTW算法)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/03/2621814.html">34. 目标检测学习_1(用opencv自带hog实现行人检测)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/07/31/2616180.html">35. Qt学习之路_8(Qt中与文件目录相关操作)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/06/15/3137239.html">36. 机器学习&amp;数据挖掘笔记_11（高斯过程回归）(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/06/14/3135380.html">37. 机器学习&amp;数据挖掘笔记_10（高斯过程简单理解）(3)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/07/3065953.html">38. Deep learning：三十九(ICA模型练习)(3)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3009830.html">39. Deep learning：二十三(Convolution和Pooling练习)(3)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/07/30/2615913.html">40. Qt学习之路_7(线性布局和网格布局初步探索)(3)</a></li></ul></div>
+</div></div></div></div><script type="text/javascript">loadBlogSideColumn();</script></div>
+	
+</div>
+
+<!--done-->
+<div class="footer">
+	Powered by: <a href="http://www.cnblogs.com/">博客园</a>	模板提供：<a href="http://blog.hjenglish.com/">沪江博客</a>
+	Copyright ©2016 tornadomeet
+</div>
+
+
+
+<!--PageEndHtml Block Begin-->
+阿萨德发斯蒂芬
+<!--PageEndHtml Block End-->
+
+
+</body></html>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<!-- saved from url=(0066)http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html -->
+<html lang="zh-cn"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep learning：三十四(用NN实现数据的降维) - tornadomeet - 博客园</title>
+<link type="text/css" rel="stylesheet" href="./用NN实现数据的降维_files/blog-common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="./用NN实现数据的降维_files/bundle-sea.css">
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="./用NN实现数据的降维_files/bundle-sea-mobile.css">
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/tornadomeet/rss">
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/tornadomeet/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/tornadomeet/wlwmanifest.xml">
+<script src="./用NN实现数据的降维_files/jquery.js.下载" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'tornadomeet', cb_enable_mathjax=false;var isLogined=false;</script>
+<script src="./用NN实现数据的降维_files/blog-common.js.下载" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<!--done-->
+<div id="header">
+	
+<!--done-->
+<div class="header">
+	<div class="headerText">
+		<a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/tornadomeet/">tornadomeet</a><br>
+		
+	</div>
+</div>
+
+</div>
+
+<div id="mytopmenu">
+	
+		<div id="mylinks"><a id="blog_nav_sitehome" class="menu" href="http://www.cnblogs.com/">博客园</a> &nbsp;
+<a id="blog_nav_myhome" class="menu" href="http://www.cnblogs.com/tornadomeet/">首页</a> &nbsp;
+<a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a> &nbsp;
+<a id="blog_nav_contact" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/tornadomeet">联系</a> &nbsp;
+<a id="blog_nav_rss" class="menu" href="http://www.cnblogs.com/tornadomeet/rss">订阅</a><a id="blog_nav_rss_image" href="http://www.cnblogs.com/tornadomeet/rss"><img src="./用NN实现数据的降维_files/xml.gif" alt="订阅"></a>&nbsp;
+<a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a>
+</div>
+		<div id="mystats"><div id="blog_stats">
+随笔-252&nbsp;
+评论-2165&nbsp;
+文章-0&nbsp;
+<!--trackbacks-0-->
+</div></div>
+	
+</div>
+<div id="centercontent">
+	
+<div id="post_detail">
+<div class="post">
+	<h1 class="postTitle"><a id="cb_post_title_url" class="postTitle2" href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html">Deep learning：三十四(用NN实现数据的降维)</a></h1>
+	<div id="cnblogs_post_body"><p>&nbsp;</p>
+<p>　　数据降维的重要性就不必说了，而用NN（神经网络）来对数据进行大量的降维是从2006开始的，这起源于2006年science上的一篇文章：reducing the dimensionality of data with neural networks，作者就是鼎鼎有名的Hinton，这篇文章也标志着deep learning进入火热的时代。</p>
+<p>　　今天花了点时间读了下这篇文章，下面是一点笔记：</p>
+<p>　　多层感知机其实在上世纪已经被提出来了，但是为什么它没有得到广泛应用呢？其原因在于对多层非线性网络进行权值优化时很难得到全局的参数。因为一般使用数值优化算法（比如BP算法）时需要随机给网络赋一个值，而当这个权值太大的话，就很容易收敛到”差”的局部收敛点，权值太小的话则在进行误差反向传递时离输入层越近的权值更新越慢，因此优化问题是多层NN没有大规模应用的原因。而本文的作者设计出来的autoencoder深度网络确能够较快的找到比较好的全局最优点，它是用无监督的方法（这里是RBM）先分开对每层网络进行训练，然后将它当做是初始值来微调。这种方法被认为是对PCA的一个非线性泛化方法。</p>
+<p>每一层网络的预训练都采用的是RBM方法，关于RBM的简单介绍可以参考前面的博文：<a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/27/2984725.html"><strong>Deep learning</strong><strong>：十九(RBM</strong><strong>简单理解)</strong></a>，其主要思想是是利用能量函数，如下：</p>
+<p>&nbsp;　　<img src="./用NN实现数据的降维_files/29225057-5fa7d45721dd4a8898ab9cbd910abef9.png" alt=""></p>
+<p>　　给定一张输入图像（暂时是以二值图像为例），我们可以通过调整网络的权值和偏置值使得网络对该输入图像的能量最低。</p>
+<p>　　文章说单层的二值网络不足以模拟大量的数据集，因此一般采用多层网络，即把第一层网络的输出作为第二层网络的输入。并且每增加一个网络层，就会提高网络对输入数据重构的log下界概率值，且上层的网络能够提取出其下层网络更高阶的特征。</p>
+<p>　　图像的预训练和微调，编码和解码的示意图如下：</p>
+<p>&nbsp;　　<img src="./用NN实现数据的降维_files/29225120-66ba878e622a4fc1aa041c408e85c5c6.png" alt=""></p>
+<p>　　由上图可以看到，当网络的预训练过程完成后，我们需要把解码部分重新拿回来展开构成整个网络，然后用真实的数据作为样本标签来微调网络的参数。</p>
+<p>　　当网络的输入数据是连续值时，只需将可视层的二进制值改为服从方差为1的高斯分布即可，而第一个隐含层的输出仍然为二进制变量。</p>
+<p>　　文章中包含了多个实验部分，有手写数字体的识别，人脸图像的压缩，新闻主题的提取等。在这些实验的分层训练过程中，其第一个RBM网络的输入层都是其对应的真实数据，且将值归一化到了（0,1）.而其它RBM的输入层都是上一个RBM网络输出层的概率值；但是在实际的网络结构中，除了最底层的输入层和最顶层RBM的隐含层是连续值外，其它所有层都是一个二值随机变量。此时最顶层RBM的隐含层是一个高斯分布的随机变量，其均值由该RBM的输入值决定，方差为1。</p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">实验结果1：</span></strong></span></p>
+<p>&nbsp;　　<img src="./用NN实现数据的降维_files/29225137-cac282466998487588decdab3d42da73.png" alt=""></p>
+<p>　　这3副图中每幅图的最上面一层是原图，其后面跟着的是用NN重构的图，以及PCA重构的图（可以选取主成分数量不同的PCA和logicPCA或者标准PCA的组合，本人对这logicPCA没有仔细去研究过）。其中左上角那副图是用NN将一个784维的数据直接降到6维！</p>
+<p>　　作者通过实验还发现：如果网络的深度浅到只有1个隐含层时，这时候可以不用对网络进行预训练也同样可以达到很好的效果，但是对网络用RBM进行预训练可以节省后面用BP训练的时间。另外，当网络中参数的个数是相同时，深层网络比浅层网络在测试数据上的重构误差更小，但仅限于两者参数个数相同时。作者在MINIST手写数字识别库中，用的是4个隐含层的网络结构，维数依次为784-500-500-2000-10，其识别误差率减小至1.2%。预训时练得到的网络权值占最终识别率的主要部分，因为预训练中已经隐含了数据的内部结构，而微调时用的标签数据只对参数起到稍许的作用。</p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">参考资料：</span></strong></span></p>
+<p>　　reducing the dimensionality of data with neural networks</p>
+<p>&nbsp; &nbsp; &nbsp;<a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/27/2984725.html"><strong>Deep learning</strong><strong>：十九(RBM</strong><strong>简单理解)</strong></a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p></div><div id="MySignature" style="display: block;">作者：tornadomeet
+
+出处：http://www.cnblogs.com/tornadomeet
+
+欢迎转载或分享，但请务必声明文章出处。      （新浪微博：tornadomeet,欢迎交流！）</div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory">分类: <a href="http://www.cnblogs.com/tornadomeet/category/361811.html" target="_blank">机器学习</a>,<a href="http://www.cnblogs.com/tornadomeet/category/497607.html" target="_blank">Deep Learning</a></div>
+<div id="EntryTag">标签: <a href="http://www.cnblogs.com/tornadomeet/tag/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a>, <a href="http://www.cnblogs.com/tornadomeet/tag/Deep%20Learning/">Deep Learning</a></div>
+<div id="blog_post_info"><div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(3051393,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+            <a id="green_channel_follow" onclick="follow(&#39;dae176a9-cc64-e111-aa3f-842b2b196315&#39;);" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./用NN实现数据的降维_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="./用NN实现数据的降维_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/tornadomeet/" target="_blank"><img src="./用NN实现数据的降维_files/sample_face.gif" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/tornadomeet/">tornadomeet</a><br>
+            <a href="http://home.cnblogs.com/u/tornadomeet/followees">关注 - 46</a><br>
+            <a href="http://home.cnblogs.com/u/tornadomeet/followers">粉丝 - 3269</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow(&#39;dae176a9-cc64-e111-aa3f-842b2b196315&#39;);return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(3051393,&#39;Digg&#39;)">
+        <span class="diggnum" id="digg_count">1</span>
+    </div>
+    <div class="buryit" onclick="votePost(3051393,&#39;Bury&#39;)">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/25/3041963.html" class="p_n_p_prefix">« </a> 上一篇：<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/25/3041963.html" title="发布于2013-04-25 11:03">Deep learning：三十三(ICA模型)</a><br><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html" class="p_n_p_prefix">» </a> 下一篇：<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html" title="发布于2013-04-30 20:03">Deep learning：三十五(用NN实现数据降维练习)</a><br></div>
+</div>
+
+
+	<div class="postDesc">posted on <span id="post-date">2013-04-29 22:52</span> <a href="http://www.cnblogs.com/tornadomeet/">tornadomeet</a> 阅读(<span id="post_view_count">10505</span>) 评论(<span id="post_comment_count">3</span>)  <a href="https://i.cnblogs.com/EditPosts.aspx?postid=3051393" rel="nofollow">编辑</a> <a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html#" onclick="AddToWz(3051393);return false;">收藏</a></div>
+</div>
+<script type="text/javascript">var allowComments=true,cb_blogId=110408,cb_entryId=3051393,cb_blogApp=currentBlogApp,cb_blogUserGuid='dae176a9-cc64-e111-aa3f-842b2b196315',cb_entryCreatedDate='2013/4/29 22:52:00';loadViewCount(cb_entryId);</script>
+
+</div><a name="!comments"></a><div id="blog-comments-placeholder"><div id="comments_pager_top"></div>
+<!--done-->
+<br>
+<b>评论:</b>
+<div class="feedbackNoItems"></div>
+	
+
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html#2716478" class="layer">#1楼</a><a name="2716478" id="comment_anchor_2716478"></a>
+				 <span class="comment_date">2013-06-30 06:55</span> | <a id="a_comment_author_2716478" href="http://home.cnblogs.com/u/308892/" target="_blank">welcome_andy</a> <a href="http://msg.cnblogs.com/send/welcome_andy" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2716478" class="blog_comment_body">楼主，向你请教下. <br>当网络的输入数据是连续值时，只需将可视层的二进制值改为服从方差为1的高斯分布即可? 我试着这样改，结果输出很多白块....晕倒。。。。。<br>v0-h0-v1-h1, 用来计算h0?<br><br> negdata = logistic(nhstates*W' + repmat(c,numcases,1));  %%%visible data<br> negdatastates = negdata &gt; rand(numcases,numdims); <br>%%%current equation<br> negdata = normpdf(1, nhstates*W' + repmat(c,numcases,1),1);<br><br>negdatastates = logistic((lamd/delta2)*(negdata*W + repmat(b,numcases,1)));</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2716478,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2716478,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html#2726929" class="layer">#2楼</a><a name="2726929" id="comment_anchor_2726929"></a>[<span class="louzhu">楼主</span>]
+				 <span class="comment_date">2013-07-14 19:37</span> | <a id="a_comment_author_2726929" href="http://www.cnblogs.com/tornadomeet/" target="_blank">tornadomeet</a> <a href="http://msg.cnblogs.com/send/tornadomeet" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2726929" class="blog_comment_body"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html#2716478" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,2716478);">@</a>
+welcome_andy<br>你指的是GRBM么？我具体没实现过，可能是你高斯函数那部分出现了问题。</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2726929,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2726929,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html#3088384" class="layer">#3楼</a><a name="3088384" id="comment_anchor_3088384"></a><span id="comment-maxId" style="display:none;">3088384</span><span id="comment-maxDate" style="display:none;">2014/12/17 19:44:17</span>
+				 <span class="comment_date">2014-12-17 19:44</span> | <a id="a_comment_author_3088384" href="http://home.cnblogs.com/u/703245/" target="_blank">sunshine_nci</a> <a href="http://msg.cnblogs.com/send/sunshine_nci" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3088384" class="blog_comment_body">@welcome_andy<br>同学你好，当网络的输入数据是连续值时，只需将可视层的二进制值改为服从方差为1的高斯分布即可，你是怎么做的啊？哈哈，求赐教...</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3088384,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3088384,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+
+
+
+<div id="comments_pager_bottom"></div></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id="comment_form" class="commentform">
+<a name="commentform"></a>
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html#" onclick="return RefreshPage();">刷新页面</a><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29/3051393.html#top">返回顶部</a></div>
+<div id="comment_form_container"><div class="login_tips">注册用户登录后才能发表评论，请 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login(&#39;commentform&#39;);">登录</a> 或 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，<a href="http://www.cnblogs.com/">访问</a>网站首页。</div></div>
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+<div id="ad_t2"><a href="http://www.ucancode.com/index.htm" target="_blank">【推荐】50万行VC++源码: 大型组态工控、电力仿真CAD与GIS源码库</a><br><a href="http://rongcloud.cn/reports/journal2" target="_blank">【推荐】融云发布 App 社交化白皮书 IM 提升活跃超 8 倍</a><br><a href="http://arcapp.anruichina.com/arctrac/trac?tid=smb_azure_1212_CNBlog" target="_blank">【福利】Microsoft Azure给博客园的你专属三重大礼</a><br><a href="http://bbs.h3bpm.com/read.php?tid=861&amp;fid=11?utm_source=cnblogs&amp;utm_medium=pic&amp;utm_campaign=show&amp;utm_content=v10&amp;utm_term=%E5%85%8D%E8%B4%B9%E4%B8%8B%E8%BD%BD" target="_blank">【推荐】BPM免费下载</a><br></div>
+<div id="opt_under_post"></div>
+<div id="ad_c1" class="c_ad_block"><a href="http://www.gcpowertools.com.cn/products/componentone.htm?utm_source=cnblogs&amp;utm_medium=blogpage&amp;utm_term=bottom&amp;utm_content=C1&amp;utm_campaign=community" target="_blank"><img width="300" height="250" src="./用NN实现数据的降维_files/24442-20161031104644908-57254170.png" alt=""></a></div>
+<div id="under_post_news"><div class="itnews c_ad_block"><b>最新IT新闻</b>:<br> ·  <a href="http://news.cnblogs.com/n/559178/" target="_blank">中国科学家成功将3D打印血管植入动物体内</a><br> ·  <a href="http://news.cnblogs.com/n/559177/" target="_blank">人人公司第三季度净亏损2280万美元 同比收窄</a><br> ·  <a href="http://news.cnblogs.com/n/559176/" target="_blank">微软参加2017 MWC，尽管没Surface Phone但会传达很多信息</a><br> ·  <a href="http://news.cnblogs.com/n/559175/" target="_blank">俞敏洪：现在的硅谷特别庸俗，成了一个跟风的地方</a><br> ·  <a href="http://news.cnblogs.com/n/559174/" target="_blank">AWS发布最新云成本预算工具 助企业实现云成本控制</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div></div>
+<div id="ad_c2" class="c_ad_block"><a href="http://bbs.h3bpm.com/read.php?tid=861&amp;fid=11?utm_source=cnblogs&amp;utm_medium=pic&amp;utm_campaign=show&amp;utm_content=v10&amp;utm_term=%E5%85%8D%E8%B4%B9%E4%B8%8B%E8%BD%BD" target="_blank"><img width="468" height="60" src="./用NN实现数据的降维_files/35695-20161213142353073-1602158633.jpg" alt=""></a></div>
+<div id="under_post_kb"><div class="itnews c_ad_block" id="kb_block"><b>最新知识库文章</b>:<br><div id="kb_recent"> ·  <a href="http://kb.cnblogs.com/page/558087/" target="_blank">高质量的工程代码为什么难写</a><br> ·  <a href="http://kb.cnblogs.com/page/555750/" target="_blank">循序渐进地代码重构</a><br> ·  <a href="http://kb.cnblogs.com/page/554496/" target="_blank">技术的正宗与野路子</a><br> ·  <a href="http://kb.cnblogs.com/page/553682/" target="_blank">陈皓：什么是工程师文化？</a><br> ·  <a href="http://kb.cnblogs.com/page/551422/" target="_blank">没那么难，谈CSS的设计模式</a><br></div>» <a href="http://kb.cnblogs.com/" target="_blank">更多知识库文章...</a></div></div>
+<div id="HistoryToday" class="c_ad_block"></div>
+<script type="text/javascript">
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+</div>
+<div id="leftcontent">
+	
+		<div id="leftcontentcontainer">
+			
+<!--done-->
+<div class="newsItem">
+	<div id="blog-news"><div id="profile_block">昵称：<a href="http://home.cnblogs.com/u/tornadomeet/">tornadomeet</a><br>园龄：<a href="http://home.cnblogs.com/u/tornadomeet/" title="入园时间：2012-03-03">4年9个月</a><br>粉丝：<a href="http://home.cnblogs.com/u/tornadomeet/followers/">3269</a><br>关注：<a href="http://home.cnblogs.com/u/tornadomeet/followees/">46</a><div id="p_b_follow"><a href="javascript:void(0);" onclick="follow(&#39;dae176a9-cc64-e111-aa3f-842b2b196315&#39;)">+加关注</a></div></div></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="blog-calendar" style=""><table id="blogCalendar" class="Cal" cellspacing="0" cellpadding="0" title="Calendar">
+	<tbody><tr><td colspan="7"><table class="CalTitle" cellspacing="0">
+		<tbody><tr><td class="CalNextPrev"><a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2013/03/01&#39;);return false;">&lt;</a></td><td align="center">2013年4月</td><td class="CalNextPrev" align="right"><a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2013/05/01&#39;);return false;">&gt;</a></td></tr>
+	</tbody></table></td></tr><tr><th class="CalDayHeader" align="center" abbr="日" scope="col">日</th><th class="CalDayHeader" align="center" abbr="一" scope="col">一</th><th class="CalDayHeader" align="center" abbr="二" scope="col">二</th><th class="CalDayHeader" align="center" abbr="三" scope="col">三</th><th class="CalDayHeader" align="center" abbr="四" scope="col">四</th><th class="CalDayHeader" align="center" abbr="五" scope="col">五</th><th class="CalDayHeader" align="center" abbr="六" scope="col">六</th></tr><tr><td class="CalOtherMonthDay" align="center">31</td><td align="center">1</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/02.html"><u>2</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/03.html"><u>3</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/04.html"><u>4</u></a></td><td align="center">5</td><td class="CalWeekendDay" align="center">6</td></tr><tr><td class="CalWeekendDay" align="center">7</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/08.html"><u>8</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09.html"><u>9</u></a></td><td align="center">10</td><td align="center">11</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/12.html"><u>12</u></a></td><td class="CalWeekendDay" align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/13.html"><u>13</u></a></td></tr><tr><td class="CalWeekendDay" align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/14.html"><u>14</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/15.html"><u>15</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/16.html"><u>16</u></a></td><td align="center">17</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/18.html"><u>18</u></a></td><td align="center">19</td><td class="CalWeekendDay" align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/20.html"><u>20</u></a></td></tr><tr><td class="CalWeekendDay" align="center">21</td><td align="center">22</td><td align="center">23</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24.html"><u>24</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/25.html"><u>25</u></a></td><td align="center">26</td><td class="CalWeekendDay" align="center">27</td></tr><tr><td class="CalWeekendDay" align="center">28</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29.html"><u>29</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30.html"><u>30</u></a></td><td class="CalOtherMonthDay" align="center">1</td><td class="CalOtherMonthDay" align="center">2</td><td class="CalOtherMonthDay" align="center">3</td><td class="CalOtherMonthDay" align="center">4</td></tr><tr><td class="CalOtherMonthDay" align="center">5</td><td class="CalOtherMonthDay" align="center">6</td><td class="CalOtherMonthDay" align="center">7</td><td class="CalOtherMonthDay" align="center">8</td><td class="CalOtherMonthDay" align="center">9</td><td class="CalOtherMonthDay" align="center">10</td><td class="CalOtherMonthDay" align="center">11</td></tr>
+</tbody></table></div><script type="text/javascript">loadBlogDefaultCalendar();</script><br>
+			<div id="blog-sidecolumn"><div id="sidebar_search" class="sidebar-block">
+<div id="sidebar_search" class="mySearch">
+<h3 class="catListTitle">搜索</h3>
+<div id="sidebar_search_box">
+<div id="widget_my_zzk" class="div_my_zzk"><input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk"></div>
+<div id="widget_my_google" class="div_my_zzk"><input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event)" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk"></div>
+</div>
+</div>
+
+</div><div id="sidebar_shortcut" class="sidebar-block">
+<h3 class="catListTitle">常用链接</h3>
+<ul>
+<li><a href="http://www.cnblogs.com/tornadomeet/p/" title="我的博客的随笔列表">我的随笔</a></li><li><a href="http://www.cnblogs.com/tornadomeet/MyComments.html" title="我发表过的评论列表">我的评论</a></li><li><a href="http://www.cnblogs.com/tornadomeet/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li><li><a href="http://www.cnblogs.com/tornadomeet/RecentComments.html" title="我的博客的评论列表">最新评论</a></li><li><a href="http://www.cnblogs.com/tornadomeet/tag/" title="我的博客的标签列表">我的标签</a></li>
+</ul>
+<div id="itemListLin_con" style="display:none;">
+
+</div></div><div id="sidebar_toptags" class="sidebar-block">
+<h3 class="catListTitle">我的标签</h3>
+<div id="MyTag">
+<ul>
+<li><a href="http://www.cnblogs.com/tornadomeet/tag/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a>(72)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/Deep%20Learning/">Deep Learning</a>(51)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/opencv/">opencv</a>(34)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/%E5%9F%BA%E7%A1%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8Bopencv/">基础学习笔记之opencv</a>(24)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/Android%E5%BC%80%E5%8F%91%E5%8E%86%E7%A8%8B/">Android开发历程</a>(18)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/matlab/">matlab</a>(16)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/reading%20papers/">reading papers</a>(16)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/%E6%80%BB%E7%BB%93%E7%B3%BB%E5%88%97/">总结系列</a>(15)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/Qt%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%B7%AF/">Qt学习之路</a>(14)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/OpenNI/">OpenNI</a>(14)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/">更多</a></li>
+</ul>
+</div></div><div id="sidebar_categories">
+		<h3 class="catListTitle">随笔分类<span style="font-size:11px;font-weight:normal">(468)</span></h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_0" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/400063.html">Android(19)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_1" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362086.html">ARM</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_2" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362087.html">C/C++(6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_3" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361470.html">CV(47)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_4" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/497607.html">Deep Learning(51)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_5" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361469.html">DIP(7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_6" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/437087.html">Eigen(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_7" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361817.html">FPGA</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_8" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/366103.html">IR(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_9" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/400062.html">Java</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_10" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/416316.html">Kinect(15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_11" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361818.html">Linux(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_12" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361467.html">matlab(17)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_13" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361466.html">OpenCV(57)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_14" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/406166.html">OpenGL(7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_15" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/416317.html">OpenNI(14)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_16" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/379510.html">Paper(8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_17" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/374732.html">Qt(36)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_18" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361814.html">Robot(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_19" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/402881.html">XML(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_20" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361815.html">单片机</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_21" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361816.html">电子设计</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_22" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/599067.html">感悟总结(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_23" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361811.html">机器学习(91)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_24" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/371256.html">计算机网络(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_25" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/375969.html">控制理论(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_26" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361812.html">模式识别(11)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_27" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361819.html">嵌入式</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_28" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361813.html">人工智能(8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_29" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362088.html">神经网络(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_30" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/444797.html">手势识别(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_31" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/426653.html">数据结构(6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_32" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/489160.html">数据挖掘(13)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_33" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/370489.html">数学(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_34" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362085.html">数字信号处理(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_35" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361810.html">算法(7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_36" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/366102.html">语音处理(4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_37" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/376567.html">总结(24)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_38" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/370949.html">最优化(2)</a></li>
+			
+				</ul>
+			
+	
+		<h3 class="catListTitle">随笔档案<span style="font-size:11px;font-weight:normal">(252)</span></h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_0" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2014/07.html">2014年7月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_1" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2014/01.html">2014年1月 (6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_2" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/12.html">2013年12月 (3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_3" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/11.html">2013年11月 (7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_4" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/10.html">2013年10月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_5" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/09.html">2013年9月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_6" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/08.html">2013年8月 (6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_7" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/07.html">2013年7月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_8" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/06.html">2013年6月 (5)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_9" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/05.html">2013年5月 (8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_10" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/04.html">2013年4月 (18)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_11" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/03.html">2013年3月 (20)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_12" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/02.html">2013年2月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_13" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/01.html">2013年1月 (4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_14" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/12.html">2012年12月 (15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_15" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/11.html">2012年11月 (15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_16" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/10.html">2012年10月 (8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_17" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/09.html">2012年9月 (11)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_18" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/08.html">2012年8月 (24)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_19" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/07.html">2012年7月 (29)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_20" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/06.html">2012年6月 (15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_21" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/05.html">2012年5月 (14)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_22" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/04.html">2012年4月 (14)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_23" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/03.html">2012年3月 (22)</a></li>
+			
+				</ul>
+			
+	
+		<h3 class="catListTitle">文章分类</h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_0" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/599066.html">感悟总结</a></li>
+			
+				</ul>
+			
+	
+</div><div id="sidebar_scorerank" class="sidebar-block">
+<h3>积分与排名</h3>
+<ul>
+	<li>
+		积分 -
+		700600
+	</li><li>
+		排名 -
+		120
+	</li>
+</ul>
+</div><div id="sidebar_recentcomments" class="sidebar-block"><div id="recent_comments_wrap">
+<h3 class="catListTitle">最新评论</h3>
+<div class="RecentComment" id="RecentComments">
+	<div id="RecentCommentsBlock"><ul>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html#3578206">1. Re:Deep learning：三十八(Stacked CNN简单介绍)</a></li>
+        <li class="recent_comment_body">您好，“ C3层的每个特征图并不一定是都与S2层的特征图相连接，有可能只与其中的某几个连接”，这里的“某几个”是按什么样的规律呢，您又是如何选择的呢，期待您的回复</li>
+        <li class="recent_comment_author">--勾勒爱之年华</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/05/24/2515980.html#3577217">2. Re:本人常用资源整理(ing...)</a></li>
+        <li class="recent_comment_body">好人！ 厉害！</li>
+        <li class="recent_comment_author">--ZaneWang</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3434651.html#3574399">3. Re:Deep learning：四十八(Contractive AutoEncoder简单理解)</a></li>
+        <li class="recent_comment_body">博主，紧急求教啊，我主要研究故障诊断方面，但是利用CAE提取特征时发现各种类型的故障提取的特征是一样的，所以我的分类精度只有25%，求指教</li>
+        <li class="recent_comment_author">--qiyumeimei</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/16/3024292.html#3573005">4. Re:Deep learning：二十九(Sparse coding练习)</a></li>
+        <li class="recent_comment_body">@wanwan0508你好，请问这个问题你拓扑结构下这个check的错误率过大的问题解决了吗？我按照楼主注释掉规则化中偏移patches均值那一步骤后，如下% Rescale from [-1,1] ......</li>
+        <li class="recent_comment_author">--三山半</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html#3572155">5. Re:Deep learning：三十八(Stacked CNN简单介绍)</a></li>
+        <li class="recent_comment_body">您好，我现在正在仿照DLtoolbox写CNN，工具箱中我采用了您说的“其中打X了的表示两者之间有连接的”，但是在反向BP的时候，该怎么样进行反向BP的传播呢。</li>
+        <li class="recent_comment_author">--勾勒爱之年华</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/19/2694332.html#3571293">6. Re:Qt学习之路_12(简易数据管理系统)</a></li>
+        <li class="recent_comment_body">求源码 1224373565@qq.com</li>
+        <li class="recent_comment_author">--漫步云海</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3434651.html#3568499">7. Re:Deep learning：四十八(Contractive AutoEncoder简单理解)</a></li>
+        <li class="recent_comment_body">@bigiceberg_请问你解决那个求导的问题了吗？是不是用BP算法求残差再求导？...</li>
+        <li class="recent_comment_author">--qiyumeimei</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3434651.html#3568261">8. Re:Deep learning：四十八(Contractive AutoEncoder简单理解)</a></li>
+        <li class="recent_comment_body">你好，我想问一下那个雅克比矩阵是不是只针对编码网络部分？</li>
+        <li class="recent_comment_author">--qiyumeimei</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/22/2975978.html#3560796">9. Re:Deep learning：十三(Softmax Regression)</a></li>
+        <li class="recent_comment_body">损失函数中指示函数"1{.}"写错了吧。。。应该为“0{.}”？<br>损失函数不是应该在预测正确时不惩罚，预测错误时惩罚么。。貌似写反了。</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/28/2420936.html#3560745">10. Re:基础学习笔记之opencv(3)：haartraining生成.xml文件过程</a></li>
+        <li class="recent_comment_body">博主您好，我在生成.vec文件时，出现了pos.txt(1): parse errorDone. Create 0 samples 请问这是什么问题呢？命令如下：-info pos.txt -vec......</li>
+        <li class="recent_comment_author">--zyriris</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/20/2970724.html#3559683">11. Re:Deep learning：九(Sparse Autoencoder练习)</a></li>
+        <li class="recent_comment_body">想请教几个问题，谁能加我的qq：9315387，谢谢！另外，最后显示的是权重w，显示w有什么意义？不如显示特征</li>
+        <li class="recent_comment_author">--admudzl</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html#3557512">12. Re:Deep learning：五十一(CNN的反向求导及练习)</a></li>
+        <li class="recent_comment_body">楼主你好 ufldl上说在更新参数的时候要在20分钟之内 我的程序跑了40分钟 请问有什么最值得优化的地方 或者说最耗时的地方</li>
+        <li class="recent_comment_author">--kimir17</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/19/2970101.html#3557043">13. Re:Deep learning：八(Sparse Autoencoder)</a></li>
+        <li class="recent_comment_body">“其中的参数一般取很小，比如说0.05，也就是小概率发生事件的概率。这说明要求隐含层的每一个节点的输出均值接近0.05”----楼主能帮忙再解释下么，多谢~</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/18/2966041.html#3556597">14. Re:Deep learning：七(基础知识_2)</a></li>
+        <li class="recent_comment_body">楼主您好。<br>请问“隐含层神经元的个数越多则效果会越好”，这个不绝对吧？</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/26/2704046.html#3554242">15. Re:Kinect+OpenNI学习笔记之1(开发环境的建立)</a></li>
+        <li class="recent_comment_body">楼主，你好。我驱动安装成功后的设备管理器处会显示没有kinect motor，请问你上面的说“手动更新驱动程序到指定的安装目录”如何实现。</li>
+        <li class="recent_comment_author">--骋</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/28/2568634.html#3554202">16. Re:Qt学习之路_4(Qt UDP的初步使用)</a></li>
+        <li class="recent_comment_body">@kyww我也出现过这种情况，不过解决了，你现在解决了吗...</li>
+        <li class="recent_comment_author">--彷徨中前行的我</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/14/2959138.html#3553429">17. Re:Deep learning：一(基础知识_1)</a></li>
+        <li class="recent_comment_body">您好，请问文中“牛顿法不需要选择任何参数”怎么理解？？多谢~~</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/24/2979408.html#3537905">18. Re:Deep learning：十五(Self-Taught Learning练习)</a></li>
+        <li class="recent_comment_body">请问博主，对于这种self taught learning的hiddensize怎么确定？ 我自己用1000个数据试了一下：当hiddensize=200，准确率=90%；当hiddensize = ......</li>
+        <li class="recent_comment_author">--zoey321</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3258122.html#3535043">19. Re:Deep learning：四十一(Dropout简单理解)</a></li>
+        <li class="recent_comment_body">博文里提到的native bayes，应该是naive bayes（朴素贝叶斯）。看了下论文原文，dropout可以看作是bagging的一个特例，博主这里提到的boosting应该是笔误吧，boos......</li>
+        <li class="recent_comment_author">--ChrisZZ</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html#3534132">20. Re:Deep learning：五十一(CNN的反向求导及练习)</a></li>
+        <li class="recent_comment_body">@tornadomeet您好，我想请问一下，怎么换成自己的数据，我想看看效果，希望能指点，谢谢！...</li>
+        <li class="recent_comment_author">--susanwq</li>
+</ul>
+</div>
+</div>
+</div></div><div id="sidebar_topviewedposts" class="sidebar-block"><div id="topview_posts_wrap">
+<h3 class="catListTitle">阅读排行榜</h3>
+<div class="RecentComment" id="TopViewPosts"> 
+	<div id="TopViewPostsBlock"><ul><li><a href="http://www.cnblogs.com/tornadomeet/p/3395593.html">1. 机器学习&amp;数据挖掘笔记_16（常见面试之机器学习算法思想简单梳理）(90567)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html">2. Deep learning：五十一(CNN的反向求导及练习)(65522)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/14/2959138.html">3. Deep learning：一(基础知识_1)(64977)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/27/2984725.html">4. Deep learning：十九(RBM简单理解)(58674)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html">5. Deep learning：三十八(Stacked CNN简单介绍)(57097)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3439503.html">6. Deep learning：四十九(RNN-RBM简单理解)(57046)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3258122.html">7. Deep learning：四十一(Dropout简单理解)(55640)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/22/2975978.html">8. Deep learning：十三(Softmax Regression)(53218)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/26/2834336.html">9. 基础学习笔记之opencv(24)：imwrite函数的使用(53081)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">10. 特征点检测学习_2(surf算法)(52064)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/15/2640754.html">11. opencv源码解析之(6)：hog源码分析(47816)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/20/2970724.html">12. Deep learning：九(Sparse Autoencoder练习)(40993)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/03/2621814.html">13. 目标检测学习_1(用opencv自带hog实现行人检测)(40348)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/15/2398769.html">14. 目标跟踪学习笔记_1(opencv中meanshift和camshift例子的应用)(39298)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/05/24/2515980.html">15. 本人常用资源整理(ing...)(36093)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/22/2651574.html">16. OpenGL_Qt学习笔记之_01(创建一个OpenGL窗口)(34103)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/06/2538695.html">17. 图像分割学习笔记_1(opencv自带meanshift分割例子)(33760)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/06/2673104.html">18. PCA算法学习_1(OpenCV中PCA实现人脸降维)(33413)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/23/2699077.html">19. Qt学习之路_14(简易音乐播放器)(32540)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/22/2411318.html">20. 基础学习笔记之opencv(1)：opencv中facedetect例子浅析(32316)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3261247.html">21. Deep learning：四十二(Denoise Autoencoder简单理解)(32123)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/19/2970101.html">22. Deep learning：八(Sparse Autoencoder)(31795)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/30/2839615.html">23. PCA算法学习_2(PCA理论的matlab实现)(30858)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/28/2568634.html">24. Qt学习之路_4(Qt UDP的初步使用)(29304)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/13/3018393.html">25. Deep learning：二十六(Sparse coding简单理解)(29198)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/16/2643168.html">26. 特征点检测学习_1(sift算法)(29195)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3009830.html">27. Deep learning：二十三(Convolution和Pooling练习)(28069)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/15/2961660.html">28. Deep learning：二(linear regression练习)(27973)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/24/2560261.html">29. 本人部分博客导航(ing...)(27648)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/23/2413363.html">30. HMM学习笔记_1(从一个实例中学习DTW算法)(27168)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/06/2756361.html">31. 一些知识点的初步理解_7(随机森林,ing...)(26075)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/19/2694332.html">32. Qt学习之路_12(简易数据管理系统)(25883)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/30/2571001.html">33. Qt学习之路_5(Qt TCP的初步使用)(25238)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/26/2982694.html">34. Deep learning：十八(关于随机采样)(23702)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/28/2420936.html">35. 基础学习笔记之opencv(3)：haartraining生成.xml文件过程(23687)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415583.html">36. HMM学习笔记_2(从一个实例中学习HMM前向算法)(23567)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/08/2384843.html">37. opencv源码解析之(3)：特征点检查前言1(23246)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/16/2963919.html">38. Deep learning：四(logistic regression练习)(23143)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/23/2783709.html">39. 基础学习笔记之opencv(18)：kmeans函数使用实例(22421)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/19/2646412.html">40. 目标跟踪学习笔记_5(opencv中kalman点跟踪例子)(22227)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap">
+<h3 class="catListTitle">评论排行榜</h3>
+<div class="RecentComment" id="TopCommentsPosts">
+	<div id="TopFeedbackPostsBlock"><ul><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/20/2970724.html">1. Deep learning：九(Sparse Autoencoder练习)(98)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3011209.html">2. Deep learning：二十四(stacked autoencoder练习)(77)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html">3. Deep learning：三十五(用NN实现数据降维练习)(73)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/23/2977621.html">4. Deep learning：十四(Softmax Regression练习)(70)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/16/3024292.html">5. Deep learning：二十九(Sparse coding练习)(66)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/04/2753185.html">6. Kinect+OpenNI学习笔记之12(简单手势所表示的数字的识别)(57)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/24/2979408.html">7. Deep learning：十五(Self-Taught Learning练习)(55)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/28/2420936.html">8. 基础学习笔记之opencv(3)：haartraining生成.xml文件过程(53)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3009830.html">9. Deep learning：二十三(Convolution和Pooling练习)(53)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html">10. Deep learning：三十八(Stacked CNN简单介绍)(53)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html">11. Deep learning：五十一(CNN的反向求导及练习)(44)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415889.html">12. HMM学习笔记_3(从一个实例中学习Viterbi算法)(38)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/08/2384843.html">13. opencv源码解析之(3)：特征点检查前言1(32)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/10/18/2728896.html">14. Kinect+OpenNI学习笔记之8(Robert Walter手部提取代码的分析)(32)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">15. 特征点检测学习_2(surf算法)(31)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/22/2411318.html">16. 基础学习笔记之opencv(1)：opencv中facedetect例子浅析(31)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/10/19/2730891.html">17. Kinect+OpenNI学习笔记之9(不需要骨骼跟踪的人体手部分割)(30)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/15/2640754.html">18. opencv源码解析之(6)：hog源码分析(29)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/08/3007435.html">19. Deep learning：二十二(linear decoder练习)(29)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3874378.html">20. 告别学生时代(28)</a></li></ul></div>
+</div></div></div><div id="sidebar_topdiggedposts" class="sidebar-block"><div id="topdigg_posts_wrap">
+<h3 class="catListTitle">推荐排行榜</h3>
+<div class="RecentComment">
+	<div id="TopDiggPostsBlock"><ul><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/05/24/2515980.html">1. 本人常用资源整理(ing...)(36)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3395593.html">2. 机器学习&amp;数据挖掘笔记_16（常见面试之机器学习算法思想简单梳理）(25)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/14/2959138.html">3. Deep learning：一(基础知识_1)(18)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/15/2640754.html">4. opencv源码解析之(6)：hog源码分析(16)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html">5. Deep learning：三十八(Stacked CNN简单介绍)(11)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/24/2560261.html">6. 本人部分博客导航(ing...)(11)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html">7. Deep learning：三十五(用NN实现数据降维练习)(8)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/04/2753185.html">8. Kinect+OpenNI学习笔记之12(简单手势所表示的数字的识别)(8)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3258122.html">9. Deep learning：四十一(Dropout简单理解)(7)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/12/2766458.html">10. 龙星计划机器学习笔记(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/23/2699077.html">11. Qt学习之路_14(简易音乐播放器)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/22/2698337.html">12. Qt学习之路_13(简易俄罗斯方块)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/19/2694332.html">13. Qt学习之路_12(简易数据管理系统)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">14. 特征点检测学习_2(surf算法)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3874378.html">15. 告别学生时代(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html">16. Deep learning：五十一(CNN的反向求导及练习)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/02/2531565.html">17. 前景检测算法_3(GMM)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/15/2398769.html">18. 目标跟踪学习笔记_1(opencv中meanshift和camshift例子的应用)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415889.html">19. HMM学习笔记_3(从一个实例中学习Viterbi算法)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/04/12/2443993.html">20. 初步体验libsvm用法1(官方自带工具)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415583.html">21. HMM学习笔记_2(从一个实例中学习HMM前向算法)(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/27/2420088.html">22. 基础学习笔记之opencv(2)：haartraining前将统一图片尺寸方法(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/20/2408086.html">23. Matlab DIP(瓦)ch9形态学图像处理(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/16/2643168.html">24. 特征点检测学习_1(sift算法)(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3276753.html">25. 机器学习&amp;数据挖掘笔记_14（GMM-HMM语音识别简单理解）(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3439503.html">26. Deep learning：四十九(RNN-RBM简单理解)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/27/2706417.html">27. Kinect+OpenNI学习笔记之2(获取kinect的颜色图像和深度图像)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/09/2763271.html">28. 基础学习笔记之opencv(16)：grabcut使用例程(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/30/2839615.html">29. PCA算法学习_2(PCA理论的matlab实现)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/15/2961660.html">30. Deep learning：二(linear regression练习)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/12/2813939.html">31. 基础学习笔记之opencv(23)：OpenCV坐标体系的初步认识(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/04/2800701.html">32. 基础学习笔记之opencv(20)：OpenCV中的颜色空间(ing...)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/23/2413363.html">33. HMM学习笔记_1(从一个实例中学习DTW算法)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/03/2621814.html">34. 目标检测学习_1(用opencv自带hog实现行人检测)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/07/31/2616180.html">35. Qt学习之路_8(Qt中与文件目录相关操作)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/06/15/3137239.html">36. 机器学习&amp;数据挖掘笔记_11（高斯过程回归）(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/06/14/3135380.html">37. 机器学习&amp;数据挖掘笔记_10（高斯过程简单理解）(3)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/07/3065953.html">38. Deep learning：三十九(ICA模型练习)(3)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3009830.html">39. Deep learning：二十三(Convolution和Pooling练习)(3)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/07/30/2615913.html">40. Qt学习之路_7(线性布局和网格布局初步探索)(3)</a></li></ul></div>
+</div></div></div></div><script type="text/javascript">loadBlogSideColumn();</script></div>
+	
+</div>
+
+<!--done-->
+<div class="footer">
+	Powered by: <a href="http://www.cnblogs.com/">博客园</a>	模板提供：<a href="http://blog.hjenglish.com/">沪江博客</a>
+	Copyright ©2016 tornadomeet
+</div>
+
+
+
+<!--PageEndHtml Block Begin-->
+阿萨德发斯蒂芬
+<!--PageEndHtml Block End-->
+
+
+</body></html>
