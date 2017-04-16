@@ -1,0 +1,341 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- saved from url=(0086)http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86 -->
+<html lang="en" dir="ltr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>数据预处理 - Ufldl</title>
+
+<meta name="generator" content="MediaWiki 1.16.2">
+<link rel="shortcut icon" href="http://ufldl.stanford.edu/favicon.ico">
+<link rel="search" type="application/opensearchdescription+xml" href="http://ufldl.stanford.edu/wiki/opensearch_desc.php" title="Ufldl (en)">
+<link rel="alternate" type="application/atom+xml" title="Ufldl Atom feed" href="http://ufldl.stanford.edu/wiki/index.php?title=Special:RecentChanges&amp;feed=atom">
+<link rel="stylesheet" href="./数据预处理 - Ufldl_files/shared.css" media="screen">
+<link rel="stylesheet" href="./数据预处理 - Ufldl_files/commonPrint.css" media="print">
+<link rel="stylesheet" href="./数据预处理 - Ufldl_files/main.css" media="screen">
+<!--[if lt IE 5.5000]><link rel="stylesheet" href="/wiki/skins/monobook/IE50Fixes.css?270" media="screen" /><![endif]-->
+<!--[if IE 5.5000]><link rel="stylesheet" href="/wiki/skins/monobook/IE55Fixes.css?270" media="screen" /><![endif]-->
+<!--[if IE 6]><link rel="stylesheet" href="/wiki/skins/monobook/IE60Fixes.css?270" media="screen" /><![endif]-->
+<!--[if IE 7]><link rel="stylesheet" href="/wiki/skins/monobook/IE70Fixes.css?270" media="screen" /><![endif]-->
+<link rel="stylesheet" href="./数据预处理 - Ufldl_files/index.php">
+<link rel="stylesheet" href="./数据预处理 - Ufldl_files/index(1).php" media="print">
+<link rel="stylesheet" href="./数据预处理 - Ufldl_files/index(2).php">
+<link rel="stylesheet" href="./数据预处理 - Ufldl_files/index(3).php">
+<script>
+var skin="monobook",
+stylepath="/wiki/skins",
+wgUrlProtocols="http\\:\\/\\/|https\\:\\/\\/|ftp\\:\\/\\/|irc\\:\\/\\/|gopher\\:\\/\\/|telnet\\:\\/\\/|nntp\\:\\/\\/|worldwind\\:\\/\\/|mailto\\:|news\\:|svn\\:\\/\\/",
+wgArticlePath="/wiki/index.php/$1",
+wgScriptPath="/wiki",
+wgScriptExtension=".php",
+wgScript="/wiki/index.php",
+wgVariantArticlePath=false,
+wgActionPaths={},
+wgServer="http://ufldl.stanford.edu",
+wgCanonicalNamespace="",
+wgCanonicalSpecialPageName=false,
+wgNamespaceNumber=0,
+wgPageName="数据预处理",
+wgTitle="数据预处理",
+wgAction="view",
+wgArticleId=470,
+wgIsArticle=true,
+wgUserName=null,
+wgUserGroups=null,
+wgUserLanguage="en",
+wgContentLanguage="en",
+wgBreakFrames=false,
+wgCurRevisionId=2312,
+wgVersion="1.16.2",
+wgEnableAPI=true,
+wgEnableWriteAPI=true,
+wgSeparatorTransformTable=["", ""],
+wgDigitTransformTable=["", ""],
+wgMainPageTitle="Main Page",
+wgFormattedNamespaces={"-2": "Media", "-1": "Special", "0": "", "1": "Talk", "2": "User", "3": "User talk", "4": "Ufldl", "5": "Ufldl talk", "6": "File", "7": "File talk", "8": "MediaWiki", "9": "MediaWiki talk", "10": "Template", "11": "Template talk", "12": "Help", "13": "Help talk", "14": "Category", "15": "Category talk"},
+wgNamespaceIds={"media": -2, "special": -1, "": 0, "talk": 1, "user": 2, "user_talk": 3, "ufldl": 4, "ufldl_talk": 5, "file": 6, "file_talk": 7, "mediawiki": 8, "mediawiki_talk": 9, "template": 10, "template_talk": 11, "help": 12, "help_talk": 13, "category": 14, "category_talk": 15, "image": 6, "image_talk": 7},
+wgSiteName="Ufldl",
+wgCategories=[],
+wgRestrictionEdit=[],
+wgRestrictionMove=[];
+</script><script src="./数据预处理 - Ufldl_files/wikibits.js.下载"></script>
+<script src="./数据预处理 - Ufldl_files/ajax.js.下载"></script>
+<script src="./数据预处理 - Ufldl_files/index(4).php"></script>
+
+</head>
+<body class="mediawiki ltr ns-0 ns-subject page-数据预处理 skin-monobook">
+<div id="globalWrapper">
+<div id="column-content"><div id="content">
+	<a id="top"></a>
+	
+	<h1 id="firstHeading" class="firstHeading">数据预处理</h1>
+	<div id="bodyContent">
+		<h3 id="siteSub">From Ufldl</h3>
+		<div id="contentSub"></div>
+		<div id="jump-to-nav">Jump to: <a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#column-one">navigation</a>, <a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#searchInput">search</a></div>
+		<!-- start content -->
+<table id="toc" class="toc"><tbody><tr><td><div id="toctitle"><h2>Contents</h2> <span class="toctoggle">[<a id="togglelink" class="internal" href="javascript:toggleToc()">hide</a>]</span></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E6.A6.82.E8.A6.81"><span class="tocnumber">1</span> <span class="toctext">概要</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E6.95.B0.E6.8D.AE.E5.BD.92.E4.B8.80.E5.8C.96"><span class="tocnumber">2</span> <span class="toctext">数据归一化</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E7.AE.80.E5.8D.95.E7.BC.A9.E6.94.BE"><span class="tocnumber">2.1</span> <span class="toctext">简单缩放</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E9.80.90.E6.A0.B7.E6.9C.AC.E5.9D.87.E5.80.BC.E6.B6.88.E5.87.8F"><span class="tocnumber">2.2</span> <span class="toctext">逐样本均值消减</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E7.89.B9.E5.BE.81.E6.A0.87.E5.87.86.E5.8C.96"><span class="tocnumber">2.3</span> <span class="toctext">特征标准化</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-6"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#PCA.2FZCA.E7.99.BD.E5.8C.96"><span class="tocnumber">3</span> <span class="toctext">PCA/ZCA白化</span></a>
+<ul>
+<li class="toclevel-2 tocsection-7"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E5.9F.BA.E4.BA.8E.E9.87.8D.E6.9E.84.E7.9A.84.E6.A8.A1.E5.9E.8B"><span class="tocnumber">3.1</span> <span class="toctext">基于重构的模型</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E5.9F.BA.E4.BA.8E.E6.AD.A3.E4.BA.A4.E5.8C.96ICA.E7.9A.84.E6.A8.A1.E5.9E.8B"><span class="tocnumber">3.2</span> <span class="toctext">基于正交化ICA的模型</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-9"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E5.A4.A7.E5.9B.BE.E5.83.8F"><span class="tocnumber">4</span> <span class="toctext">大图像</span></a></li>
+<li class="toclevel-1 tocsection-10"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E6.A0.87.E5.87.86.E6.B5.81.E7.A8.8B"><span class="tocnumber">5</span> <span class="toctext">标准流程</span></a>
+<ul>
+<li class="toclevel-2 tocsection-11"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E8.87.AA.E7.84.B6.E7.81.B0.E5.BA.A6.E5.9B.BE.E5.83.8F"><span class="tocnumber">5.1</span> <span class="toctext">自然灰度图像</span></a></li>
+<li class="toclevel-2 tocsection-12"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E5.BD.A9.E8.89.B2.E5.9B.BE.E5.83.8F"><span class="tocnumber">5.2</span> <span class="toctext">彩色图像</span></a></li>
+<li class="toclevel-2 tocsection-13"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E9.9F.B3.E9.A2.91_.28MFCC.2F.E9.A2.91.E8.B0.B1.E5.9B.BE.29"><span class="tocnumber">5.3</span> <span class="toctext">音频 (MFCC/频谱图)</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#MNIST_.E6.89.8B.E5.86.99.E6.95.B0.E5.AD.97"><span class="tocnumber">5.4</span> <span class="toctext">MNIST 手写数字</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-15"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E4.B8.AD.E8.8B.B1.E6.96.87.E5.AF.B9.E7.85.A7"><span class="tocnumber">6</span> <span class="toctext">中英文对照</span></a></li>
+<li class="toclevel-1 tocsection-16"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86#.E4.B8.AD.E6.96.87.E8.AF.91.E8.80.85"><span class="tocnumber">7</span> <span class="toctext">中文译者</span></a></li>
+</ul>
+</td></tr></tbody></table><script>if (window.showTocToggle) { var tocShowText = "show"; var tocHideText = "hide"; showTocToggle(); } </script>
+<h2> <span class="mw-headline" id=".E6.A6.82.E8.A6.81"> 概要 </span></h2>
+<p>数据预处理在众多深度学习算法中都起着重要作用，实际情况中，将数据做归一化和白化处理后，很多算法能够发挥最佳效果。然而除非对这些算法有丰富的使用经验，否则预处理的精确参数并非显而易见。在本页中，我们希望能够揭开预处理方法的神秘面纱，同时为预处理数据提供技巧（和标准流程）。
+</p>
+<div style="background-color: #eeeeee; border-style: dotted; padding: 5px">
+<p>提示：当我们开始处理数据时，首先要做的事是观察数据并获知其特性。本部分将介绍一些通用的技术，在实际中应该针对具体数据选择合适的预处理技术。例如一种标准的预处理方法是对每一个数据点都减去它的均值（也被称为移除直流分量，局部均值消减，消减归一化），这一方法对诸如自然图像这类数据是有效的，但对非平稳的数据则不然。
+</p>
+</div>
+<p><br>
+</p>
+<h2> <span class="mw-headline" id=".E6.95.B0.E6.8D.AE.E5.BD.92.E4.B8.80.E5.8C.96"> 数据归一化 </span></h2>
+<p>数据预处理中，标准的第一步是数据归一化。虽然这里有一系列可行的方法，但是这一步通常是根据数据的具体情况而明确选择的。特征归一化常用的方法包含如下几种：
+</p>
+<ul><li> 简单缩放
+</li><li> 逐样本均值消减(也称为移除直流分量)
+</li><li> 特征标准化(使数据集中所有特征都具有零均值和单位方差)
+</li></ul>
+<p><br>
+</p>
+<h3> <span class="mw-headline" id=".E7.AE.80.E5.8D.95.E7.BC.A9.E6.94.BE"> 简单缩放 </span></h3>
+<p>在简单缩放中，我们的目的是通过对数据的每一个维度的值进行重新调节（这些维度可能是相互独立的），使得最终的数据向量落在 <span class="texhtml">[0,1]</span>或<span class="texhtml">[ − 1,1]</span> 的区间内（根据数据情况而定）。这对后续的处理十分重要，因为很多<i>默认</i>参数（如 PCA-白化中的 epsilon）都假定数据已被缩放到合理区间。
+</p><p><b>例子:</b>在处理自然图像时，我们获得的像素值在 <span class="texhtml">[0,255]</span> 区间中，常用的处理是将这些像素值除以 255，使它们缩放到 <span class="texhtml">[0,1]</span> 中.
+</p><p><br>
+</p>
+<h3> <span class="mw-headline" id=".E9.80.90.E6.A0.B7.E6.9C.AC.E5.9D.87.E5.80.BC.E6.B6.88.E5.87.8F"> 逐样本均值消减 </span></h3>
+<p>如果你的数据是<i>平稳</i>的（即数据每一个维度的统计都服从相同分布），那么你可以考虑在每个样本上减去数据的统计平均值(逐样本计算)。
+</p><p><b>例子：</b>对于图像，这种归一化可以移除图像的平均亮度值 (intensity)。很多情况下我们对图像的照度并不感兴趣，而更多地关注其内容，这时对每个数据点移除像素的均值是有意义的。<b>注意：</b>虽然该方法广泛地应用于图像，但在处理彩色图像时需要格外小心，具体来说，是因为不同色彩通道中的像素并不都存在平稳特性。
+</p><p><br>
+</p>
+<h3> <span class="mw-headline" id=".E7.89.B9.E5.BE.81.E6.A0.87.E5.87.86.E5.8C.96"> 特征标准化 </span></h3>
+<p>特征标准化指的是（独立地）使得数据的每一个维度具有零均值和单位方差。这是归一化中最常见的方法并被广泛地使用（例如，在使用支持向量机（SVM）时，特征标准化常被建议用作预处理的一部分）。在实际应用中，特征标准化的具体做法是：首先计算每一个维度上数据的均值（使用全体数据计算），之后在每一个维度上都减去该均值。下一步便是在数据的每一维度上除以该维度上数据的标准差。
+</p><p><b>例子</b>:处理音频数据时，常用 Mel 倒频系数 <a href="http://en.wikipedia.org/wiki/Mel-frequency_cepstrum" class="external text" rel="nofollow">MFCCs</a> 来表征数据。然而MFCC特征的第一个分量（表示直流分量）数值太大，常常会掩盖其他分量。这种情况下，为了平衡各个分量的影响，通常对特征的每个分量独立地使用标准化处理。
+</p><p><br>
+</p>
+<h2> <span class="mw-headline" id="PCA.2FZCA.E7.99.BD.E5.8C.96"> PCA/ZCA白化 </span></h2>
+<p>在做完简单的归一化后，白化通常会被用来作为接下来的预处理步骤，它会使我们的算法工作得更好。实际上许多深度学习算法都依赖于白化来获得好的特征。
+</p><p>在进行 PCA/ZCA 白化时，首先使特征零均值化是很有必要的，这保证了 <img class="tex" alt=" \frac{1}{m} \sum_i x^{(i)} = 0 " src="./数据预处理 - Ufldl_files/e38353138423fe3c99226921e02ee649.png">。特别地，这一步需要在计算协方差矩阵前完成。（唯一例外的情况是已经进行了逐样本均值消减，并且数据在各维度上或像素上是平稳的。）
+</p><p>接下来在 PCA/ZCA 白化中我们需要选择合适的 <tt>epsilon</tt>（回忆一下，这是规则化项，对数据有低通滤波作用）。 选取合适的 <tt>epsilon</tt> 值对特征学习起着很大作用，下面讨论在两种不同场合下如何选取 <tt>epsilon</tt>：
+</p><p><br>
+</p>
+<h3> <span class="mw-headline" id=".E5.9F.BA.E4.BA.8E.E9.87.8D.E6.9E.84.E7.9A.84.E6.A8.A1.E5.9E.8B"> 基于重构的模型 </span></h3>
+<p>在基于重构的模型中(包括自编码器，稀疏编码，受限 Boltzman 机（RBM），k-均值（K-Means）)，经常倾向于选取合适的 <tt>epsilon</tt> 以使得白化达到低通滤波的效果。（译注：通常认为数据中的高频分量是噪声，低通滤波的作用就是尽可能抑制这些噪声，同时保留有用的信息。在 PCA 等方法中，假设数据的信息主要分布在方差较高的方向，方差较低的方向是噪声（即高频分量），因此后文中 <tt>epsilon</tt> 的选择与特征值有关）。一种检验 <tt>epsilon</tt> 是否合适的方法是用该值对数据进行 ZCA 白化，然后对白化前后的数据进行可视化。如果 <tt>epsilon</tt> 值过低，白化后的数据会显得噪声很大；相反，如果 <tt>epsilon</tt> 值过高，白化后的数据与原始数据相比就过于模糊。一种直观上得到 <tt>epsilon</tt> 大小的方法是以图形方式画出数据的特征值，如下图的例子所示，你可以看到一条"长尾"，它对应于数据中的高频噪声部分。你需要选取合适的 <tt>epsilon</tt>，使其能够在很大程度上过滤掉这条"长尾"，也就是说，选取的 <tt>epsilon</tt> 应大于大多数较小的、反映数据中噪声的特征值。
+</p><p><a href="http://ufldl.stanford.edu/wiki/index.php/File:ZCA_Eigenvalues_Plot.png" class="image"><img alt="ZCA Eigenvalues Plot.png" src="./数据预处理 - Ufldl_files/ZCA_Eigenvalues_Plot.png" width="482" height="392"></a>
+</p><p>在基于重构的模型中，损失函数有一项是用于惩罚那些与原始输入数据差异较大的重构结果（译注：以自动编码机为例，要求输入数据经过编码和解码之后还能尽可能的还原输入数据）。如果 <tt>epsilon</tt> 太小，白化后的数据中就会包含很多噪声，而模型要拟合这些噪声，以达到很好的重构结果。因此，对于基于重构的模型来说，对原始数据进行低通滤波就显得非常重要。
+</p>
+<div style="background-color: #eeeeee; border-style: dotted; padding: 5px">
+<p>提示：如果数据已被缩放到合理范围(如<span class="texhtml">[0,1]</span>)，可以从<span class="texhtml"><i>e</i><i>p</i><i>s</i><i>i</i><i>l</i><i>o</i><i>n</i> = 0.01</span>或<span class="texhtml"><i>e</i><i>p</i><i>s</i><i>i</i><i>l</i><i>o</i><i>n</i> = 0.1</span>开始调节<tt>epsilon</tt>。
+</p>
+</div>
+<p><br>
+</p>
+<h3> <span class="mw-headline" id=".E5.9F.BA.E4.BA.8E.E6.AD.A3.E4.BA.A4.E5.8C.96ICA.E7.9A.84.E6.A8.A1.E5.9E.8B"> 基于正交化ICA的模型 </span></h3>
+<p>对基于正交化ICA的模型来说，保证输入数据尽可能地白化（即协方差矩阵为单位矩阵）非常重要。这是因为：这类模型需要对学习到的特征做正交化，以解除不同维度之间的相关性（详细内容请参考 <a href="http://ufldl.stanford.edu/wiki/index.php/Independent_Component_Analysis" title="Independent Component Analysis"> ICA </a> 一节）。因此在这种情况下，<tt>epsilon</tt> 要足够小（比如 <span class="texhtml"><i>e</i><i>p</i><i>s</i><i>i</i><i>l</i><i>o</i><i>n</i> = 1<i>e</i> − 6</span>）。
+</p>
+<div style="background-color: #eeeeee; border-style: dotted; padding: 5px">
+<p>提示：我们也可以在PCA白化过程中同时降低数据的维度。这是一个很好的主意，因为这样可以大大提升算法的速度（减少了运算量和参数数目）。确定要保留的主成分数目有一个经验法则：即所保留的成分的总方差达到总样本方差的 99% 以上。(详细内容请参考<a href="http://ufldl.stanford.edu/wiki/index.php/PCA#Number_of_components_to_retain" title="PCA"> PCA </a>)
+</p>
+</div>
+<p><br>
+</p>
+<div style="background-color: #eeeeee; border-style: dotted; padding: 5px">
+<p>注意: 在使用分类框架时，我们应该只基于练集上的数据计算PCA/ZCA白化矩阵。需要保存以下两个参数留待测试集合使用：(a)用于零均值化数据的平均值向量；(b)白化矩阵。测试集需要采用这两组保存的参数来进行相同的预处理。
+</p>
+</div>
+<p><br>
+</p>
+<h2> <span class="mw-headline" id=".E5.A4.A7.E5.9B.BE.E5.83.8F"> 大图像 </span></h2>
+<p>对于大图像，采用基于 PCA/ZCA 的白化方法是不切实际的，因为协方差矩阵太大。在这些情况下我们退而使用 1/f 白化方法（更多内容后续再讲）。
+</p><p><br>
+</p>
+<h2> <span class="mw-headline" id=".E6.A0.87.E5.87.86.E6.B5.81.E7.A8.8B"> 标准流程 </span></h2>
+<p>在这一部分中，我们将介绍几种在一些数据集上有良好表现的预处理标准流程.
+</p><p><br>
+</p>
+<h3> <span class="mw-headline" id=".E8.87.AA.E7.84.B6.E7.81.B0.E5.BA.A6.E5.9B.BE.E5.83.8F"> 自然灰度图像 </span></h3>
+<p>灰度图像具有平稳特性，我们通常在第一步对每个数据样本分别做均值消减（即减去直流分量），然后采用 PCA/ZCA 白化处理，其中的 <tt>epsilon</tt> 要足够大以达到低通滤波的效果。
+</p><p><br>
+</p>
+<h3> <span class="mw-headline" id=".E5.BD.A9.E8.89.B2.E5.9B.BE.E5.83.8F"> 彩色图像 </span></h3>
+<p>对于彩色图像，色彩通道间并不存在平稳特性。因此我们通常首先对数据进行特征缩放（使像素值位于 <span class="texhtml">[0,1]</span> 区间），然后使用足够大的 <tt>epsilon</tt> 来做 PCA/ZCA。注意在进行 PCA 变换前需要对特征进行分量均值归零化。
+</p><p><br>
+</p>
+<h3> <span class="mw-headline" id=".E9.9F.B3.E9.A2.91_.28MFCC.2F.E9.A2.91.E8.B0.B1.E5.9B.BE.29"> 音频 (MFCC/频谱图) </span></h3>
+<p>对于音频数据 (MFCC 和频谱图)，每一维度的取值范围（方差）不同。例如 MFCC 的第一分量是直流分量，通常其幅度远大于其他分量，尤其当特征中包含时域导数 (temporal derivatives) 时（这是音频处理中的常用方法）更是如此。因此，对这类数据的预处理通常从简单的数据标准化开始（即使得数据的每一维度均值为零、方差为 1），然后进行 PCA/ZCA 白化（使用合适的 <tt>epsilon</tt>）。
+</p><p><br>
+</p>
+<h3> <span class="mw-headline" id="MNIST_.E6.89.8B.E5.86.99.E6.95.B0.E5.AD.97"> MNIST 手写数字 </span></h3>
+<p>MNIST 数据集的像素值在 <span class="texhtml">[0,255]</span> 区间中。我们首先将其缩放到 <span class="texhtml">[0,1]</span> 区间。实际上，进行逐样本均值消去也有助于特征学习。<i>注：也可选择以对 MNIST 进行 PCA/ZCA 白化，但这在实践中不常用。</i>
+</p><p><br>
+</p>
+<h2> <span class="mw-headline" id=".E4.B8.AD.E8.8B.B1.E6.96.87.E5.AF.B9.E7.85.A7">中英文对照</span></h2>
+<dl><dd>归一化	normalization
+</dd></dl>
+<dl><dd>白化	whitening
+</dd></dl>
+<dl><dd>直流分量	DC component
+</dd></dl>
+<dl><dd>局部均值消减	local mean subtraction
+</dd></dl>
+<dl><dd>消减归一化	sparse autoencoder
+</dd></dl>
+<dl><dd>缩放	rescaling
+</dd></dl>
+<dl><dd>逐样本均值消减	per-example mean subtraction
+</dd></dl>
+<dl><dd>特征标准化	feature standardization
+</dd></dl>
+<dl><dd>平稳	stationary
+</dd></dl>
+<dl><dd>Mel倒频系数 MFCC
+</dd></dl>
+<dl><dd>零均值化	zero-mean
+</dd></dl>
+<dl><dd>低通滤波	low-pass filtering
+</dd></dl>
+<dl><dd>基于重构的模型	reconstruction based models
+</dd></dl>
+<dl><dd>自编码器	autoencoders
+</dd></dl>
+<dl><dd>稀疏编码	sparse coding
+</dd></dl>
+<dl><dd>受限Boltzman机	RBMs
+</dd></dl>
+<dl><dd>k-均值	k-Means
+</dd></dl>
+<dl><dd>长尾	long tail
+</dd></dl>
+<dl><dd>损失函数	loss function
+</dd></dl>
+<dl><dd>正交化	orthogonalization
+</dd></dl>
+<p><br>
+</p>
+<h2> <span class="mw-headline" id=".E4.B8.AD.E6.96.87.E8.AF.91.E8.80.85">中文译者</span></h2>
+<p>陈磊(lei.chen@operasolutions.com)， 王文中（wangwenzhong@ymail.com）,  王方（fangkey@gmail.com）
+</p><p><br>
+</p>
+<div style="text-align: left;font-size:small;background-color: #eeeeee; border-style: solid; border-width: 1px; padding: 5px">
+<p>Language&nbsp;: <a href="http://ufldl.stanford.edu/wiki/index.php/Data_Preprocessing" title="Data Preprocessing">English</a>
+</p>
+</div>
+
+<!-- 
+NewPP limit report
+Preprocessor node count: 199/1000000
+Post-expand include size: 1886/2097152 bytes
+Template argument size: 1404/2097152 bytes
+Expensive parser function count: 0/100
+-->
+
+<!-- Saved in parser cache with key wikidb:pcache:idhash:470-0!1!0!!en!2!edit=0 and timestamp 20161214030746 -->
+<div class="printfooter">
+Retrieved from "<a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86">http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86</a>"</div>
+		<div id="catlinks" class="catlinks catlinks-allhidden"></div>		<!-- end content -->
+				<div class="visualClear"></div>
+	</div>
+</div></div>
+<div id="column-one">
+	<div id="p-cactions" class="portlet">
+		<h5>Views</h5>
+		<div class="pBody">
+			<ul>
+				 <li id="ca-nstab-main" class="selected"><a href="http://ufldl.stanford.edu/wiki/index.php/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86" title="View the content page [alt-c]" accesskey="c">Page</a></li>
+				 <li id="ca-talk" class="new"><a href="http://ufldl.stanford.edu/wiki/index.php?title=Talk:%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86&amp;action=edit&amp;redlink=1" title="Discussion about the content page [alt-t]" accesskey="t">Discussion</a></li>
+				 <li id="ca-viewsource"><a href="http://ufldl.stanford.edu/wiki/index.php?title=%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86&amp;action=edit" title="This page is protected.
+You can view its source [alt-e]" accesskey="e">View source</a></li>
+				 <li id="ca-history"><a href="http://ufldl.stanford.edu/wiki/index.php?title=%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86&amp;action=history" title="Past revisions of this page [alt-h]" accesskey="h">History</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="portlet" id="p-personal">
+		<h5>Personal tools</h5>
+		<div class="pBody">
+			<ul>
+				<li id="pt-login"><a href="http://ufldl.stanford.edu/wiki/index.php?title=Special:UserLogin&amp;returnto=%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86" title="You are encouraged to log in; however, it is not mandatory [alt-o]" accesskey="o">Log in</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="portlet" id="p-logo">
+		<a style="background-image: url(/wiki/skins/common/images/dolphin-openclipart.png);" href="http://ufldl.stanford.edu/wiki/index.php/Main_Page" title="Visit the main page"></a>
+	</div>
+	<script type="text/javascript"> if (window.isMSIE55) fixalpha(); </script>
+	<div class="generated-sidebar portlet" id="p-ufldl_resources">
+		<h5>ufldl resources</h5>
+		<div class="pBody">
+			<ul>
+				<li id="n-UFLDL-Tutorial"><a href="http://ufldl.stanford.edu/wiki/index.php/UFLDL_Tutorial">UFLDL Tutorial</a></li>
+				<li id="n-Recommended-Readings"><a href="http://ufldl.stanford.edu/wiki/index.php/UFLDL_Recommended_Readings">Recommended Readings</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="generated-sidebar portlet" id="p-wiki">
+		<h5>wiki</h5>
+		<div class="pBody">
+			<ul>
+				<li id="n-mainpage-description"><a href="http://ufldl.stanford.edu/wiki/index.php/Main_Page" title="Visit the main page [alt-z]" accesskey="z">Main page</a></li>
+				<li id="n-recentchanges"><a href="http://ufldl.stanford.edu/wiki/index.php/Special:RecentChanges" title="The list of recent changes in the wiki [alt-r]" accesskey="r">Recent changes</a></li>
+				<li id="n-randompage"><a href="http://ufldl.stanford.edu/wiki/index.php/Special:Random" title="Load a random page [alt-x]" accesskey="x">Random page</a></li>
+				<li id="n-help"><a href="http://ufldl.stanford.edu/wiki/index.php/Help:Contents" title="The place to find out">Help</a></li>
+			</ul>
+		</div>
+	</div>
+	<div id="p-search" class="portlet">
+		<h5><label for="searchInput">Search</label></h5>
+		<div id="searchBody" class="pBody">
+			<form action="http://ufldl.stanford.edu/wiki/index.php" id="searchform">
+				<input type="hidden" name="title" value="Special:Search">
+				<input id="searchInput" title="Search Ufldl" accesskey="f" type="search" name="search">
+				<input type="submit" name="go" class="searchButton" id="searchGoButton" value="Go" title="Go to a page with this exact name if exists">&nbsp;
+				<input type="submit" name="fulltext" class="searchButton" id="mw-searchButton" value="Search" title="Search the pages for this text">
+			</form>
+		</div>
+	</div>
+	<div class="portlet" id="p-tb">
+		<h5>Toolbox</h5>
+		<div class="pBody">
+			<ul>
+				<li id="t-whatlinkshere"><a href="http://ufldl.stanford.edu/wiki/index.php/Special:WhatLinksHere/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86" title="List of all wiki pages that link here [alt-j]" accesskey="j">What links here</a></li>
+				<li id="t-recentchangeslinked"><a href="http://ufldl.stanford.edu/wiki/index.php/Special:RecentChangesLinked/%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86" title="Recent changes in pages linked from this page [alt-k]" accesskey="k">Related changes</a></li>
+<li id="t-specialpages"><a href="http://ufldl.stanford.edu/wiki/index.php/Special:SpecialPages" title="List of all special pages [alt-q]" accesskey="q">Special pages</a></li>
+				<li id="t-print"><a href="http://ufldl.stanford.edu/wiki/index.php?title=%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86&amp;printable=yes" rel="alternate" title="Printable version of this page [alt-p]" accesskey="p">Printable version</a></li>				<li id="t-permalink"><a href="http://ufldl.stanford.edu/wiki/index.php?title=%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86&amp;oldid=2312" title="Permanent link to this revision of the page">Permanent link</a></li>			</ul>
+		</div>
+	</div>
+</div><!-- end of the left (by default at least) column -->
+<div class="visualClear"></div>
+<div id="footer">
+	<div id="f-poweredbyico"><a href="http://www.mediawiki.org/"><img src="./数据预处理 - Ufldl_files/poweredby_mediawiki_88x31.png" height="31" width="88" alt="Powered by MediaWiki"></a></div>
+	<ul id="f-list">
+		<li id="lastmod"> This page was last modified on 8 April 2013, at 04:22.</li>
+		<li id="viewcount">This page has been accessed 44,031 times.</li>
+		<li id="privacy"><a href="http://ufldl.stanford.edu/wiki/index.php/Ufldl:Privacy_policy" title="Ufldl:Privacy policy">Privacy policy</a></li>
+		<li id="about"><a href="http://ufldl.stanford.edu/wiki/index.php/Ufldl:About" title="Ufldl:About">About Ufldl</a></li>
+		<li id="disclaimer"><a href="http://ufldl.stanford.edu/wiki/index.php/Ufldl:General_disclaimer" title="Ufldl:General disclaimer">Disclaimers</a></li>
+	</ul>
+</div>
+</div>
+
+<script>if (window.runOnloadHook) runOnloadHook();</script>
+<!-- Served in 0.110 secs. -->
+</body></html>

@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<!-- saved from url=(0066)http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html -->
+<html lang="zh-cn"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep learning：三十一(数据预处理练习) - tornadomeet - 博客园</title>
+<link type="text/css" rel="stylesheet" href="./数据预处理练习_files/blog-common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="./数据预处理练习_files/bundle-sea.css">
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="./数据预处理练习_files/bundle-sea-mobile.css">
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/tornadomeet/rss">
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/tornadomeet/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/tornadomeet/wlwmanifest.xml">
+<script type="text/javascript" src="./数据预处理练习_files/encoder.js.下载"></script><script src="./数据预处理练习_files/jquery.js.下载" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'tornadomeet', cb_enable_mathjax=false;var isLogined=false;</script>
+<script src="./数据预处理练习_files/blog-common.js.下载" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<!--done-->
+<div id="header">
+	
+<!--done-->
+<div class="header">
+	<div class="headerText">
+		<a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/tornadomeet/">tornadomeet</a><br>
+		
+	</div>
+</div>
+
+</div>
+
+<div id="mytopmenu">
+	
+		<div id="mylinks"><a id="blog_nav_sitehome" class="menu" href="http://www.cnblogs.com/">博客园</a> &nbsp;
+<a id="blog_nav_myhome" class="menu" href="http://www.cnblogs.com/tornadomeet/">首页</a> &nbsp;
+<a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a> &nbsp;
+<a id="blog_nav_contact" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/tornadomeet">联系</a> &nbsp;
+<a id="blog_nav_rss" class="menu" href="http://www.cnblogs.com/tornadomeet/rss">订阅</a><a id="blog_nav_rss_image" href="http://www.cnblogs.com/tornadomeet/rss"><img src="./数据预处理练习_files/xml.gif" alt="订阅"></a>&nbsp;
+<a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a>
+</div>
+		<div id="mystats"><div id="blog_stats">
+随笔-252&nbsp;
+评论-2165&nbsp;
+文章-0&nbsp;
+<!--trackbacks-0-->
+</div></div>
+	
+</div>
+<div id="centercontent">
+	
+<div id="post_detail">
+<div class="post">
+	<h1 class="postTitle"><a id="cb_post_title_url" class="postTitle2" href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html">Deep learning：三十一(数据预处理练习)</a></h1>
+	<div id="cnblogs_post_body"><p>&nbsp;</p>
+<p>　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">前言:</span></strong></span></p>
+<p>　　本节主要是来练习下在machine learning(不仅仅是deep learning)设计前的一些数据预处理步骤，关于数据预处理的一些基本要点在前面的博文<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/20/3033149.html"><strong>Deep learning</strong><strong>：三十(</strong><strong>关于数据预处理的相关技巧)</strong></a>中已有所介绍，无非就是数据的归一化和数据的白化，而数据的归一化又分为尺度归一化，均值方差归一化等。数据的白化常见的也有PCA白化和ZCA白化。</p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">实验基础：</span></strong></span></p>
+<p>　　本次实验所用的数据为ASL手势识别的数据，数据可以在网站<a href="http://personal.ee.surrey.ac.uk/Personal/N.Pugeault/index.php?section=FingerSpellingDataset">http://personal.ee.surrey.ac.uk/Personal/N.Pugeault/index.php?section=FingerSpellingDataset</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p>上下载。关于该ASL数据库的一些简单特征：</p>
+<p>　　该数据为24个字母（字母j和z的手势是动态的，所以在这里不予考虑）的手势静态图片库，每个操作者以及每个字母都有颜色图和深度图，训练和测试数据一起约2.2G（其实因为它是8bit的整型，后面在matlab处理中一般都会转换成浮点数，所以总共的数据大约10G以上了）。</p>
+<p>　　这些手势图片是用kinect针对不同的5个人分别采集的，每个人采集24个字母的图像各约500张，所以颜色图片总算大约为24*5*500=60k。当然了，这只是个大概数字，应该并不是每个人每个字母严格的500张，另外深度图像和颜色图像一样多，也大概是60k。而该数据库的作者是用一半的图片来训练，另一半用来测试。颜色图和深度图都用了。所以至少每次也用了3w张图片，每张图片都是上千维的，数据量有点大。</p>
+<p>　　另外发现所有数据库中颜色图片的第一张缺失，即是从第二张图片开始的。所以将其和kinect对应时要非常小心，并且中间有些图片是错的，比如说有的文件夹中深度图和颜色图的个数就不相等。并且原图的rgb图是8bit的，而depth图是16bit的。通常所说的文件大小指的是字节大小，即byte；而一般所说的传输速率指的是位大小，即bit。</p>
+<p>　　ASL数据库的部分图片如下：</p>
+<p><img src="./数据预处理练习_files/24094259-f552a02eaeb648bb8150b0ca5f7f4a60.png" alt=""></p>
+<p>　　<span style="font-size: 16px;"><strong><span style="color: #0000ff;">一些matlab知识：</span></strong></span></p>
+<p>　　在matlab中，虽然说几个矩阵的大小相同，也都是浮点数类型，但是由于里面的内容（即元素值）不同，所以很有可能其占用的文件大小不同。</p>
+<p>　　Imagesc和imshow在普通rgb图像使用时其实没什么区别，只不过imagesc显示的时候把标签信息给显示出来了。</p>
+<p>　　<em><strong><span style="color: #3366ff;">dir：</span></strong></em></p>
+<p>　　列出文件夹内文件的内容，只要列出的文件夹中有一个子文件夹，则其实代表了有至少有3个子文件夹。其中的’.’和’..’表示的是当前目录和上一级的目录。</p>
+<p>　　<em><strong><span style="color: #3366ff;">load:</span></strong></em></p>
+<p>　　不加括号的load时不能接中间变量，只能直接给出文件名</p>
+<p>　　<em><strong><span style="color: #3366ff;">sparse:</span></strong></em></p>
+<p>　　这个函数中参数必须为正数，因为负数或0是不能当下标的。</p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">实验结果：</span></strong></span></p>
+<p>　　这次实验主要是完成以下3个小的预处理功能。</p>
+<p>　　第一：将图片尺度归一化到96*96大小，因为给定的图片大小都不统一，所以只能取个大概的中间尺寸值。且将每张图片变成一个列向量，多个图片样本构成一个矩阵。因为这些图片要用于训练和测试，按照作者的方法，将训练和测试图片分成2部分，且每部分包含了rgb颜色图，灰度图，kinect深度图3种，由于数据比较大，所以每个采集者（总共5人）又单独设为一组。因此生产后的尺度统一图片共有30个。其中的部分文件显示如下：</p>
+<p>&nbsp;　　<img src="./数据预处理练习_files/24094328-4aa82f81dfd44e66a4ebe0251e3929af.png" alt=""></p>
+<p>　　第二：因为要用训练部分图像来训练deep learning某种模型，所以需要提取出局部patch（10*10大小）样本。此时的训练样本有3w张，每张提取出10个patch，总共30w个patch。</p>
+<p>　　第三：对这些patch样本进行数据白化操作，用的普通的ZCA白化。</p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">实验主要部分代码及注释：</span></strong></span></p>
+<p>　　下面3个m文件分别对应上面的3个小步骤。</p>
+<p><em><strong>img_preprocessing.m:</strong></em></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./数据预处理练习_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>%%<span style="color: #000000;"> data processing:
+</span>% translate the picture sets <span style="color: #0000ff;">to</span><span style="color: #000000;"> the mat form
+</span>% 将手势识别的图片数据库整理成统一的大小（这里是96*<span style="color: #800080;">96</span><span style="color: #000000;">），然后变成1列，最后转换成矩阵的形式，每个采集者的
+</span>%<span style="color: #000000;"> 数据单独放好（共ABCDE5人），为了后续实验的需要，分别保存了rgb颜色图，灰度图和深度图3种类型
+
+</span>%<span style="color: #000000;">add the picture path
+addpath c:</span>/<span style="color: #000000;">Data
+addpath c:</span>/Data/<span style="color: #000000;">fingerspelling5
+addpath c:</span>/Data/fingerspellingmat5/<span style="color: #000000;">
+matdatapath </span>= <span style="color: #800000;">'</span><span style="color: #800000;">c:/Data/fingerspellingmat5/</span><span style="color: #800000;">'</span><span style="color: #000000;">;
+
+</span>%<span style="color: #000000;">设置图片和mat文件存储的位置
+img_root_path </span>= <span style="color: #800000;">'</span><span style="color: #800000;">c:/Data/fingerspelling5/</span><span style="color: #800000;">'</span><span style="color: #000000;">;
+mat_root_path </span>= <span style="color: #800000;">'</span><span style="color: #800000;">c:/Data/fingerspellingmat5/</span><span style="color: #800000;">'</span><span style="color: #000000;">;
+
+</span>%<span style="color: #000000;">将图片归一化到的尺寸大小
+img_scale_width </span>= <span style="color: #800080;">96</span><span style="color: #000000;">;
+img_scale_height </span>= <span style="color: #800080;">96</span><span style="color: #000000;">;
+
+</span>%%<span style="color: #000000;"> 开始讲图片转换为mat数据
+img_who_path </span>= dir(img_root_path);%<span style="color: #000000;">dir命令为列出文件夹内文件的内容
+</span><span style="color: #0000ff;">if</span>(img_who_path(<span style="color: #800080;">1</span>).isdir) %<span style="color: #000000;">判断是哪个人操作的，A,B,C,...
+    length_img_who_path </span>=<span style="color: #000000;"> length(img_who_path);
+    </span><span style="color: #0000ff;">for</span> ii = <span style="color: #800080;">4</span>:length_img_who_path %<span style="color: #800080;">3</span>~<span style="color: #800080;">7</span>
+        %<span style="color: #000000;"> 在次定义存储中间元素的变量，因为我的电脑有8G内存，所以就一次性全部读完了，如果电脑内存不够的话，最好分开存入这些数据
+        </span>%<span style="color: #000000;">读取所有RGB图像的训练部分和测试部分图片
+        color_img_train </span>= zeros(img_scale_width*img_scale_height*<span style="color: #800080;">3</span>,<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span><span style="color: #000000;">);
+        color_label_train </span>= zeros(<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span>,<span style="color: #800080;">1</span><span style="color: #000000;">);
+        color_img_test </span>= zeros(img_scale_width*img_scale_height*<span style="color: #800080;">3</span>,<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span><span style="color: #000000;">);
+        color_label_test </span>= zeros(<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span>,<span style="color: #800080;">1</span><span style="color: #000000;">);
+        </span>%<span style="color: #000000;">读取所有gray图像的训练部分和测试部分图片
+        gray_img_train </span>= zeros(img_scale_width*img_scale_height,<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span><span style="color: #000000;">);
+        gray_label_train </span>= zeros(<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span>,<span style="color: #800080;">1</span><span style="color: #000000;">);
+        gray_img_test </span>= zeros(img_scale_width*img_scale_height,<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span><span style="color: #000000;">);
+        gray_label_test </span>= zeros(<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span>,<span style="color: #800080;">1</span><span style="color: #000000;">);
+        </span>%<span style="color: #000000;">读取所有depth图像的训练部分和测试部分图片
+        depth_img_train </span>= zeros(img_scale_width*img_scale_height,<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span><span style="color: #000000;">);
+        depth_label_train </span>= zeros(<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span>,<span style="color: #800080;">1</span><span style="color: #000000;">);
+        depth_img_test </span>= zeros(img_scale_width*img_scale_height,<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span><span style="color: #000000;">);
+        depth_label_test </span>= zeros(<span style="color: #800080;">250</span>*<span style="color: #800080;">24</span>,<span style="color: #800080;">1</span><span style="color: #000000;">);
+        
+        img_which_path </span>= dir([img_root_path img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">/</span><span style="color: #800000;">'</span><span style="color: #000000;">]);
+        </span><span style="color: #0000ff;">if</span>(img_which_path(<span style="color: #800080;">1</span>).isdir) %<span style="color: #000000;">判断是哪个手势,a,b,c,...
+            length_img_which_path </span>=<span style="color: #000000;"> length(img_which_path);
+            </span><span style="color: #0000ff;">for</span> jj = <span style="color: #800080;">3</span>:length_img_which_path%<span style="color: #800080;">3</span>~<span style="color: #800080;">26</span>
+                
+               %<span style="color: #000000;">读取RGB和gray图片目录
+               color_img_set </span>= dir([img_root_path img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">/</span><span style="color: #800000;">'</span><span style="color: #000000;"> ...
+                                img_which_path(jj).name </span><span style="color: #800000;">'</span><span style="color: #800000;">/color_*.png</span><span style="color: #800000;">'</span>]);%找到A/a.../<span style="color: #000000;">下的rgb图片 
+               </span>%<span style="color: #000000;">读取depth图片目录
+               depth_img_set </span>= dir([img_root_path img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">/</span><span style="color: #800000;">'</span><span style="color: #000000;"> ...
+                                img_which_path(jj).name </span><span style="color: #800000;">'</span><span style="color: #800000;">/depth_*.png</span><span style="color: #800000;">'</span>]);%找到A/a.../<span style="color: #000000;">下的depth图片 
+                            
+               </span><span style="color: #0000ff;">assert</span>(length(color_img_set) == length(depth_img_set),<span style="color: #800000;">'</span><span style="color: #800000;">the number of color image must agree with the depth image</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+               img_num </span>= length(color_img_set);%<span style="color: #000000;">因为rgb和depth图片的个数相等
+               </span><span style="color: #0000ff;">assert</span>(img_num &gt;= <span style="color: #800080;">500</span>, <span style="color: #800000;">'</span><span style="color: #800000;">the number of rgb color images must greater than 500</span><span style="color: #800000;">'</span><span style="color: #000000;">);                         
+               img_father_path </span>= [img_root_path img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">/</span><span style="color: #800000;">'</span>  img_which_path(jj).name <span style="color: #800000;">'</span><span style="color: #800000;">/</span><span style="color: #800000;">'</span><span style="color: #000000;">];
+               </span><span style="color: #0000ff;">for</span> kk = <span style="color: #800080;">1</span>:<span style="color: #800080;">500</span><span style="color: #000000;">
+                   color_img_name </span>=<span style="color: #000000;"> [img_father_path color_img_set(kk).name];          
+                   depth_img_name </span>=<span style="color: #000000;"> [img_father_path depth_img_set(kk).name];        
+                   fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Processing the image: %s and %s\n</span><span style="color: #800000;">'</span><span style="color: #000000;">,color_img_name,depth_img_name);
+                   </span>%<span style="color: #000000;">读取rgb图和gray图，最好是先resize，然后转换成double
+                   color_img </span>= imresize(imread(color_img_name),[<span style="color: #800080;">96</span> <span style="color: #800080;">96</span><span style="color: #000000;">]);
+                   gray_img </span>=<span style="color: #000000;"> rgb2gray(color_img);
+                   color_img </span>=<span style="color: #000000;"> im2double(color_img);                  
+                   gray_img </span>=<span style="color: #000000;"> im2double(gray_img);
+                   </span>%<span style="color: #000000;">读取depth图
+                   depth_img </span>= imresize(imread(depth_img_name),[<span style="color: #800080;">96</span> <span style="color: #800080;">96</span><span style="color: #000000;">]);
+                   depth_img </span>=<span style="color: #000000;"> im2double(depth_img);                  
+                   </span>%<span style="color: #000000;">将图片数据写入数组中
+                   </span><span style="color: #0000ff;">if</span> kk &lt;= <span style="color: #800080;">250</span><span style="color: #000000;">
+                       color_img_train(:,(jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk) =<span style="color: #000000;">  color_img(:);
+                       color_label_train((jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk) = jj-<span style="color: #800080;">2</span><span style="color: #000000;">;
+                       gray_img_train(:,(jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk) =<span style="color: #000000;">  gray_img(:);
+                       gray_label_train((jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk) = jj-<span style="color: #800080;">2</span><span style="color: #000000;">;
+                       depth_img_train(:,(jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk) =<span style="color: #000000;"> depth_img(:);
+                       depth_label_train((jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk) = jj-<span style="color: #800080;">2</span><span style="color: #000000;">;
+                   </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                       color_img_test(:,(jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk-<span style="color: #800080;">250</span>) =<span style="color: #000000;"> color_img(:);
+                       color_label_test((jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk-<span style="color: #800080;">250</span>) = jj-<span style="color: #800080;">2</span><span style="color: #000000;">;
+                       gray_img_test(:,(jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk-<span style="color: #800080;">250</span>) =<span style="color: #000000;"> gray_img(:);
+                       gray_label_test((jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk-<span style="color: #800080;">250</span>) = jj-<span style="color: #800080;">2</span><span style="color: #000000;">;
+                       depth_img_test(:,(jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk-<span style="color: #800080;">250</span>) =<span style="color: #000000;"> depth_img(:);
+                       depth_label_test((jj</span>-<span style="color: #800080;">3</span>)*<span style="color: #800080;">250</span>+kk-<span style="color: #800080;">250</span>) = jj-<span style="color: #800080;">2</span><span style="color: #000000;">;
+                   </span><span style="color: #0000ff;">end</span>
+               <span style="color: #0000ff;">end</span>              
+            <span style="color: #0000ff;">end</span>                      
+        <span style="color: #0000ff;">end</span>
+        %<span style="color: #000000;">保存图片
+        fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Saving %s\n</span><span style="color: #800000;">'</span>,[mat_root_path <span style="color: #800000;">'</span><span style="color: #800000;">color_img_train_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span><span style="color: #000000;">]);
+        save([mat_root_path </span><span style="color: #800000;">'</span><span style="color: #800000;">color_img_train_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span>], <span style="color: #800000;">'</span><span style="color: #800000;">color_img_train</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">color_label_train</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+        fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Saving %s\n</span><span style="color: #800000;">'</span>,[mat_root_path <span style="color: #800000;">'</span><span style="color: #800000;">color_img_test_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span><span style="color: #000000;">]);
+        save([mat_root_path </span><span style="color: #800000;">'</span><span style="color: #800000;">color_img_test_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span>] ,<span style="color: #800000;">'</span><span style="color: #800000;">color_img_test</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">color_label_test</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+        fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Saving %s\n</span><span style="color: #800000;">'</span>,[mat_root_path <span style="color: #800000;">'</span><span style="color: #800000;">gray_img_train_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span><span style="color: #000000;">]);
+        save([mat_root_path </span><span style="color: #800000;">'</span><span style="color: #800000;">gray_img_train_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span>], <span style="color: #800000;">'</span><span style="color: #800000;">gray_img_train</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">gray_label_train</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+        fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Saving %s\n</span><span style="color: #800000;">'</span>,[mat_root_path <span style="color: #800000;">'</span><span style="color: #800000;">gray_img_test_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span><span style="color: #000000;">]);
+        save([mat_root_path </span><span style="color: #800000;">'</span><span style="color: #800000;">gray_img_test_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span>] ,<span style="color: #800000;">'</span><span style="color: #800000;">gray_img_test</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">gray_label_test</span><span style="color: #800000;">'</span><span style="color: #000000;">); 
+        fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Saving %s\n</span><span style="color: #800000;">'</span>,[mat_root_path <span style="color: #800000;">'</span><span style="color: #800000;">depth_img_train_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span><span style="color: #000000;">]);
+        save([mat_root_path </span><span style="color: #800000;">'</span><span style="color: #800000;">depth_img_train_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span>], <span style="color: #800000;">'</span><span style="color: #800000;">depth_img_train</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">depth_label_train</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+        fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Saving %s\n</span><span style="color: #800000;">'</span>,[mat_root_path <span style="color: #800000;">'</span><span style="color: #800000;">depth_img_test_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span><span style="color: #000000;">]);
+        save([mat_root_path </span><span style="color: #800000;">'</span><span style="color: #800000;">depth_img_test_</span><span style="color: #800000;">'</span> img_who_path(ii).name <span style="color: #800000;">'</span><span style="color: #800000;">.mat</span><span style="color: #800000;">'</span>] ,<span style="color: #800000;">'</span><span style="color: #800000;">depth_img_test</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">depth_label_test</span><span style="color: #800000;">'</span><span style="color: #000000;">);        
+        
+        </span>%<span style="color: #000000;">清除变量，节省内存
+        clear color_img_train color_label_train color_img_test color_label_test...
+        gray_img_train gray_label_train gray_img_test gray_label_test...
+        depth_img_train depth_label_train depth_img_test depth_label_test;
+    </span><span style="color: #0000ff;">end</span>
+<span style="color: #0000ff;">end</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./数据预处理练习_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p><em><strong>sample_patches.m:</strong></em></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./数据预处理练习_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #0000ff;">function</span> patches =<span style="color: #000000;"> sample_patches(imgset, img_width, img_height, num_perimage, patch_size, channels)
+</span>%<span style="color: #000000;"> sample_patches
+</span>%<span style="color: #000000;"> imgset: 传进来的imgset是个矩阵，其中的每一列已经是每张图片的数据了
+</span>%<span style="color: #000000;"> img_width: 传进来每一列对应的那个图片的宽度
+</span>%<span style="color: #000000;"> img_height: 传进来每一列对应的那个图片的高度
+</span>%<span style="color: #000000;"> num_perimage: 每张大图片采集的小patch的个数
+</span>%<span style="color: #000000;"> patch_size: 每个patch的大小，这里统一采用高和宽相等的patch，所以这里给出的就是其边长
+
+[n m] </span>= size(imgset); %<span style="color: #000000;">n为大图片的维数，m为图片样本的个数
+num_patches </span>= num_perimage*m; %<span style="color: #000000;">需要得到的patch的个数
+
+</span>% Initialize patches <span style="color: #0000ff;">with</span> zeros.  Your code will fill <span style="color: #0000ff;">in</span> this matrix--<span style="color: #000000;">one
+</span>% column per patch, <span style="color: #800080;">10000</span><span style="color: #000000;"> columns. 
+</span><span style="color: #0000ff;">if</span>(channels == <span style="color: #800080;">3</span><span style="color: #000000;">)
+    patches </span>= zeros(patch_size*patch_size*<span style="color: #800080;">3</span><span style="color: #000000;">, num_patches);
+</span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(channels == <span style="color: #800080;">1</span><span style="color: #000000;">)
+    patches </span>= zeros(patch_size*<span style="color: #000000;">patch_size, num_patches);
+    </span><span style="color: #0000ff;">end</span>
+<span style="color: #0000ff;">end</span>
+
+<span style="color: #0000ff;">assert</span>(n == img_width*img_height*channels, <span style="color: #800000;">'</span><span style="color: #800000;">The image in the imgset must agree with it width,height anc channels</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+
+
+</span>%<span style="color: #000000;">随机从每张图片中取出num_perimage张图片
+</span><span style="color: #0000ff;">for</span> imageNum = <span style="color: #800080;">1</span>:m%<span style="color: #000000;">在每张图片中随机选取1000个patch，共10000个patch
+     img </span>=<span style="color: #000000;"> reshape(imgset(:,imageNum),[img_height img_width channels]);
+     </span><span style="color: #0000ff;">for</span> patchNum = <span style="color: #800080;">1</span>:num_perimage%<span style="color: #000000;">实现每张图片选取num_perimage个patch
+        xPos </span>= randi([<span style="color: #800080;">1</span>,img_height-patch_size+<span style="color: #800080;">1</span><span style="color: #000000;">]);
+        yPos </span>= randi([<span style="color: #800080;">1</span>, img_width-patch_size+<span style="color: #800080;">1</span><span style="color: #000000;">]);
+        patch </span>= img(xPos:xPos+patch_size-<span style="color: #800080;">1</span>,yPos:yPos+patch_size-<span style="color: #800080;">1</span><span style="color: #000000;">,:);
+        patches(:,(imageNum</span>-<span style="color: #800080;">1</span>)*num_perimage+patchNum) =<span style="color: #000000;"> patch(:);
+    </span><span style="color: #0000ff;">end</span>
+<span style="color: #0000ff;">end</span>
+
+
+ <span style="color: #0000ff;">end</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./数据预处理练习_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p><em><strong>patches_preprocessing.m:</strong></em></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./数据预处理练习_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>%<span style="color: #000000;"> 提取出用于训练的patches图片，针对rgb彩色图
+</span>% 打算提取10*<span style="color: #800080;">10</span><span style="color: #000000;">(这个参数当然可以更改，这里只是默然参数而已)尺寸的patches
+</span>%<span style="color: #000000;"> 每张大图片提取10（这个参数也可以更改）个小的patches
+</span>%<span style="color: #000000;"> 返回的参数中有没有经过白化的patch矩阵patches_without_whiteing.mat，每一列是一个patches
+</span>%<span style="color: #000000;"> 也返回经过了ZCAWhitening白化后了的patch矩阵patches_with_whiteing.mat，以及此时的均值向量
+</span>%<span style="color: #000000;"> mean_patches，白化矩阵ZCAWhitening
+
+patch_size </span>= <span style="color: #800080;">10</span><span style="color: #000000;">;
+num_per_img </span>= <span style="color: #800080;">10</span>;%<span style="color: #000000;">每张图片提取出的patches数
+num_patches </span>= <span style="color: #800080;">100000</span>; %<span style="color: #000000;">本来有30w个数据的，但是太大了，这里只取出10w个
+epsilon </span>= <span style="color: #800080;">0.1</span>; %<span style="color: #000000;">Whitening时其分母需要用到的参数
+
+</span>%<span style="color: #000000;"> 增加根目录
+addpath c:</span>/<span style="color: #000000;">Data
+addpath c:</span>/Data/<span style="color: #000000;">fingerspelling5
+addpath c:</span>/Data/fingerspellingmat5/<span style="color: #000000;">
+matdatapath </span>= <span style="color: #800000;">'</span><span style="color: #800000;">c:/Data/fingerspellingmat5/</span><span style="color: #800000;">'</span>
+
+%<span style="color: #000000;"> 加载5个人关于color图像的所有数据
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Downing the color_img_train_A.mat...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+load color_img_train_A.mat
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Sampling the patches from the color_img_train_A set...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+patches_A </span>= sample_patches(color_img_train,<span style="color: #800080;">96</span>,<span style="color: #800080;">96</span>,<span style="color: #800080;">10</span>,<span style="color: #800080;">10</span>,<span style="color: #800080;">3</span>);%<span style="color: #000000;">采集所有的patches
+clear color_img_train;
+
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Downing the color_img_train_B.mat...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+load color_img_train_B.mat
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Sampling the patches from the color_img_train_B set...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+patches_B </span>= sample_patches(color_img_train,<span style="color: #800080;">96</span>,<span style="color: #800080;">96</span>,<span style="color: #800080;">10</span>,<span style="color: #800080;">10</span>,<span style="color: #800080;">3</span>);%<span style="color: #000000;">采集所有的patches
+clear color_img_train;
+
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Downing the color_img_train_C.mat...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+load color_img_train_C.mat
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Sampling the patches from the color_img_train_C set...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+patches_C </span>= sample_patches(color_img_train,<span style="color: #800080;">96</span>,<span style="color: #800080;">96</span>,<span style="color: #800080;">10</span>,<span style="color: #800080;">10</span>,<span style="color: #800080;">3</span>);%<span style="color: #000000;">采集所有的patches
+clear color_img_train;
+
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Downing the color_img_train_D.mat...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+load color_img_train_D.mat
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Sampling the patches from the color_img_train_D set...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+patches_D </span>= sample_patches(color_img_train,<span style="color: #800080;">96</span>,<span style="color: #800080;">96</span>,<span style="color: #800080;">10</span>,<span style="color: #800080;">10</span>,<span style="color: #800080;">3</span>);%<span style="color: #000000;">采集所有的patches
+clear color_img_train;
+
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Downing the color_img_train_E.mat...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+load color_img_train_E.mat
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Sampling the patches from the color_img_train_E set...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+patches_E </span>= sample_patches(color_img_train,<span style="color: #800080;">96</span>,<span style="color: #800080;">96</span>,<span style="color: #800080;">10</span>,<span style="color: #800080;">10</span>,<span style="color: #800080;">3</span>);%<span style="color: #000000;">采集所有的patches
+clear color_img_train;
+
+</span>%<span style="color: #000000;">将这些数据组合到一起
+patches </span>=<span style="color: #000000;"> [patches_A, patches_B, patches_C, patches_D, patches_E];
+size_patches </span>= size(patches);%<span style="color: #000000;">这里的size_patches是个2维的向量，并不需要考虑通道方面的事情
+rand_patches </span>= randi(size_patches(<span style="color: #800080;">2</span>), [<span style="color: #800080;">1</span> num_patches]); %<span style="color: #000000;">随机选取出100000个样本
+patches </span>=<span style="color: #000000;"> patches(:, rand_patches);
+
+</span>%<span style="color: #000000;">直接保存原始的patches数据
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Saving the patches_without_whitening.mat...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+save([matdatapath </span><span style="color: #800000;">'</span><span style="color: #800000;">patches_without_whitening.mat</span><span style="color: #800000;">'</span>], <span style="color: #800000;">'</span><span style="color: #800000;">patches</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+
+</span>%<span style="color: #000000;">ZCA Whitening其数据
+mean_patches </span>= mean(patches,<span style="color: #800080;">2</span>); %<span style="color: #000000;">计算每一维的均值
+patches </span>= patches - repmat(mean_patches,[<span style="color: #800080;">1</span> num_patches]);%<span style="color: #000000;">均值化每一维的数据
+sigma </span>= (<span style="color: #800080;">1</span>./num_patches).*patches*patches<span style="color: #800000;">'</span><span style="color: #800000;">;</span>
+<span style="color: #000000;">
+[u s v] </span>=<span style="color: #000000;"> svd(sigma);
+ZCAWhitening </span>= u*diag(<span style="color: #800080;">1</span>./sqrt(diag(s)+epsilon))*u<span style="color: #800000;">'</span><span style="color: #800000;">;%ZCAWhitening矩阵，每一维独立，且方差相等</span>
+patches = ZCAWhitening*<span style="color: #000000;">patches;
+
+</span>%<span style="color: #000000;">保存ZCA Whitening后的数据，以及均值列向量，ZCAWhitening矩阵
+fprintf(</span><span style="color: #800000;">'</span><span style="color: #800000;">Saving the patches_with_whitening.mat...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+save([matdatapath </span><span style="color: #800000;">'</span><span style="color: #800000;">patches_with_whitening.mat</span><span style="color: #800000;">'</span>], <span style="color: #800000;">'</span><span style="color: #800000;">patches</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">mean_patches</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">ZCAWhitening</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+
+
+</span>% %%<span style="color: #000000;"> 后面只是测试下为什么patches_with_whiteing.mat和patches_without_whiteing.mat大小会相差那么多
+</span>% %<span style="color: #000000;"> 其实虽然说矩阵的大小相同，也都是浮点数，但是由于里面的内容不同，所以很有可能其占用的文件大小不同
+</span>% %<span style="color: #000000;"> 单独存ZCAWhitening
+</span>% fprintf(<span style="color: #800000;">'</span><span style="color: #800000;">Saving the zca_whiteing.mat...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+</span>% save([matdatapath <span style="color: #800000;">'</span><span style="color: #800000;">zca_whiteing.mat</span><span style="color: #800000;">'</span>], <span style="color: #800000;">'</span><span style="color: #800000;">ZCAWhitening</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+</span>% 
+% %<span style="color: #000000;"> 单独存mean_patches
+</span>% fprintf(<span style="color: #800000;">'</span><span style="color: #800000;">Saving the mean_patches.mat...\n</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+</span>% save([matdatapath <span style="color: #800000;">'</span><span style="color: #800000;">mean_patches.mat</span><span style="color: #800000;">'</span>], <span style="color: #800000;">'</span><span style="color: #800000;">mean_patches</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+</span>% 
+% aa = ones(<span style="color: #800080;">300</span>,<span style="color: #800080;">300000</span><span style="color: #000000;">);
+</span>% save([matdatapath <span style="color: #800000;">'</span><span style="color: #800000;">aaones.mat</span><span style="color: #800000;">'</span>],<span style="color: #800000;">'</span><span style="color: #800000;">aa</span><span style="color: #800000;">'</span>);</pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./数据预处理练习_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 18pt;"><strong><span style="color: #0000ff;">参考资料：</span></strong></span></p>
+<p>&nbsp; &nbsp; &nbsp;<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/20/3033149.html"><strong>Deep learning</strong><strong>：三十(</strong><strong>关于数据预处理的相关技巧)</strong></a></p>
+<p>&nbsp; &nbsp; &nbsp;<a href="http://personal.ee.surrey.ac.uk/Personal/N.Pugeault/index.php?section=FingerSpellingDataset">http://personal.ee.surrey.ac.uk/Personal/N.Pugeault/index.php?section=FingerSpellingDataset</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p></div><div id="MySignature" style="display: block;">作者：tornadomeet
+
+出处：http://www.cnblogs.com/tornadomeet
+
+欢迎转载或分享，但请务必声明文章出处。      （新浪微博：tornadomeet,欢迎交流！）</div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory">分类: <a href="http://www.cnblogs.com/tornadomeet/category/361811.html" target="_blank">机器学习</a>,<a href="http://www.cnblogs.com/tornadomeet/category/497607.html" target="_blank">Deep Learning</a></div>
+<div id="EntryTag">标签: <a href="http://www.cnblogs.com/tornadomeet/tag/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a>, <a href="http://www.cnblogs.com/tornadomeet/tag/Deep%20Learning/">Deep Learning</a></div>
+<div id="blog_post_info"><div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(3039531,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+            <a id="green_channel_follow" onclick="follow(&#39;dae176a9-cc64-e111-aa3f-842b2b196315&#39;);" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./数据预处理练习_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="./数据预处理练习_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/tornadomeet/" target="_blank"><img src="./数据预处理练习_files/sample_face.gif" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/tornadomeet/">tornadomeet</a><br>
+            <a href="http://home.cnblogs.com/u/tornadomeet/followees">关注 - 46</a><br>
+            <a href="http://home.cnblogs.com/u/tornadomeet/followers">粉丝 - 3267</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow(&#39;dae176a9-cc64-e111-aa3f-842b2b196315&#39;);return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(3039531,&#39;Digg&#39;)">
+        <span class="diggnum" id="digg_count">1</span>
+    </div>
+    <div class="buryit" onclick="votePost(3039531,&#39;Bury&#39;)">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/20/3033149.html" class="p_n_p_prefix">« </a> 上一篇：<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/20/3033149.html" title="发布于2013-04-20 21:05">Deep learning：三十(关于数据预处理的相关技巧)</a><br><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/25/3041470.html" class="p_n_p_prefix">» </a> 下一篇：<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/25/3041470.html" title="发布于2013-04-25 00:14">Deep learning：三十二(基础知识_3)</a><br></div>
+</div>
+
+
+	<div class="postDesc">posted on <span id="post-date">2013-04-24 09:47</span> <a href="http://www.cnblogs.com/tornadomeet/">tornadomeet</a> 阅读(<span id="post_view_count">11333</span>) 评论(<span id="post_comment_count">7</span>)  <a href="https://i.cnblogs.com/EditPosts.aspx?postid=3039531" rel="nofollow">编辑</a> <a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#" onclick="AddToWz(3039531);return false;">收藏</a></div>
+</div>
+<script type="text/javascript">var allowComments=true,cb_blogId=110408,cb_entryId=3039531,cb_blogApp=currentBlogApp,cb_blogUserGuid='dae176a9-cc64-e111-aa3f-842b2b196315',cb_entryCreatedDate='2013/4/24 9:47:00';loadViewCount(cb_entryId);</script>
+
+</div><a name="!comments"></a><div id="blog-comments-placeholder"><div id="comments_pager_top"></div>
+<!--done-->
+<br>
+<b>评论:</b>
+<div class="feedbackNoItems"></div>
+	
+
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#2826409" class="layer">#1楼</a><a name="2826409" id="comment_anchor_2826409"></a>
+				 <span class="comment_date">2013-11-28 19:20</span> | <a id="a_comment_author_2826409" href="http://home.cnblogs.com/u/585879/" target="_blank">波小妞</a> <a href="http://msg.cnblogs.com/send/%E6%B3%A2%E5%B0%8F%E5%A6%9E" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2826409" class="blog_comment_body">tornadomeet,那个图片怎么只能下到A啊  你能发给我一下吗？</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2826409,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2826409,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#2826477" class="layer">#2楼</a><a name="2826477" id="comment_anchor_2826477"></a>[<span class="louzhu">楼主</span>]
+				 <span class="comment_date">2013-11-28 21:31</span> | <a id="a_comment_author_2826477" href="http://www.cnblogs.com/tornadomeet/" target="_blank">tornadomeet</a> <a href="http://msg.cnblogs.com/send/tornadomeet" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2826477" class="blog_comment_body"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#2826409" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,2826409);">@</a>
+波小妞<br>...这种事情还是自己慢慢下吧</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2826477,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2826477,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#2877640" class="layer">#3楼</a><a name="2877640" id="comment_anchor_2877640"></a>
+				 <span class="comment_date">2014-02-18 16:08</span> | <a id="a_comment_author_2877640" href="http://www.cnblogs.com/harry1989/" target="_blank">harry1989</a> <a href="http://msg.cnblogs.com/send/harry1989" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2877640" class="blog_comment_body">这些图像的国外数据库你是怎么下载的啊，我用的是学校的教育网，翻墙，每次都是下载一点就卡了。请问你是翻墙的还是用的国际流量啊？</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2877640,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2877640,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#2878201" class="layer">#4楼</a><a name="2878201" id="comment_anchor_2878201"></a>[<span class="louzhu">楼主</span>]
+				 <span class="comment_date">2014-02-19 11:14</span> | <a id="a_comment_author_2878201" href="http://www.cnblogs.com/tornadomeet/" target="_blank">tornadomeet</a> <a href="http://msg.cnblogs.com/send/tornadomeet" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2878201" class="blog_comment_body"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#2877640" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,2877640);">@</a>
+harry1989<br>这个自己想办法吧</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2878201,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2878201,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#2905788" class="layer">#5楼</a><a name="2905788" id="comment_anchor_2905788"></a>
+				 <span class="comment_date">2014-03-27 20:30</span> | <a id="a_comment_author_2905788" href="http://home.cnblogs.com/u/612865/" target="_blank">beiying</a> <a href="http://msg.cnblogs.com/send/beiying" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2905788" class="blog_comment_body">addpath c:/Data/fingerspellingmat5/  请问fingerspellingmat5这个文件是在哪下的，那个数据库里面不包含这个</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2905788,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2905788,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#2923003" class="layer">#6楼</a><a name="2923003" id="comment_anchor_2923003"></a>
+				 <span class="comment_date">2014-04-22 16:19</span> | <a id="a_comment_author_2923003" href="http://www.cnblogs.com/bicelove/" target="_blank">Bice</a> <a href="http://msg.cnblogs.com/send/Bice" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2923003" class="blog_comment_body">你好，请问将每张图片变成一个列向量和变成行向量有什么区别呢？</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2923003,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2923003,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#2949197" class="layer">#7楼</a><a name="2949197" id="comment_anchor_2949197"></a><span id="comment-maxId" style="display:none;">2949197</span><span id="comment-maxDate" style="display:none;">2014/5/26 15:57:20</span>
+				 <span class="comment_date">2014-05-26 15:57</span> | <a id="a_comment_author_2949197" href="http://www.cnblogs.com/andylulu/" target="_blank">小王旺</a> <a href="http://msg.cnblogs.com/send/%E5%B0%8F%E7%8E%8B%E6%97%BA" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_2949197" class="blog_comment_body">楼主malab 是用的64bit吧?</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(2949197,&#39;Digg&#39;,this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(2949197,&#39;Bury&#39;,this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+
+
+
+<div id="comments_pager_bottom"></div></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id="comment_form" class="commentform">
+<a name="commentform"></a>
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#" onclick="return RefreshPage();">刷新页面</a><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24/3039531.html#top">返回顶部</a></div>
+<div id="comment_form_container"><div class="login_tips">注册用户登录后才能发表评论，请 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login(&#39;commentform&#39;);">登录</a> 或 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，<a href="http://www.cnblogs.com/">访问</a>网站首页。</div></div>
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+<div id="ad_t2"><a href="http://www.ucancode.com/index.htm" target="_blank">【推荐】50万行VC++源码: 大型组态工控、电力仿真CAD与GIS源码库</a><br><a href="http://rongcloud.cn/reports/journal2" target="_blank">【推荐】融云发布 App 社交化白皮书 IM 提升活跃超 8 倍</a><br><a href="http://arcapp.anruichina.com/arctrac/trac?tid=smb_azure_1212_CNBlog" target="_blank">【福利】Microsoft Azure给博客园的你专属三重大礼</a><br><a href="http://www.163yun.com/zs?zsfrom=vcloud" target="_blank">【邀请】网易云渠道合作伙伴招商大会，邀您共创未来</a><br><a href="http://bbs.h3bpm.com/read.php?tid=861&amp;fid=11?utm_source=cnblogs&amp;utm_medium=pic&amp;utm_campaign=show&amp;utm_content=v10&amp;utm_term=%E5%85%8D%E8%B4%B9%E4%B8%8B%E8%BD%BD" target="_blank">【推荐】BPM免费下载</a><br></div>
+<div id="opt_under_post"></div>
+<div id="ad_c1" class="c_ad_block"><a href="http://www.gcpowertools.com.cn/products/activereports_overview.htm?utm_source=cnblogs&amp;utm_medium=blogpage&amp;utm_term=bottom&amp;utm_content=AR&amp;utm_campaign=community" target="_blank"><img width="300" height="250" src="./数据预处理练习_files/24442-20161115165230123-1587531896.png" alt=""></a></div>
+<div id="under_post_news"><div class="itnews c_ad_block"><b>最新IT新闻</b>:<br> ·  <a href="http://news.cnblogs.com/n/558991/" target="_blank">传谷歌与菲亚特克莱斯勒合作推出汽车分享服务</a><br> ·  <a href="http://news.cnblogs.com/n/559006/" target="_blank">Unity炫黑科技：在VR世界中实时搭建游戏场景</a><br> ·  <a href="http://news.cnblogs.com/n/559005/" target="_blank">微软在Play商城上架Skype Mingo：可使用原生电话</a><br> ·  <a href="http://news.cnblogs.com/n/559004/" target="_blank">微软推出人工智能新服务：Calendar.help助你安排忙碌日程</a><br> ·  <a href="http://news.cnblogs.com/n/559003/" target="_blank">那些阿里巴巴收购和投资的大公司</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div></div>
+<div id="ad_c2" class="c_ad_block"><a href="http://bbs.h3bpm.com/read.php?tid=861&amp;fid=11?utm_source=cnblogs&amp;utm_medium=pic&amp;utm_campaign=show&amp;utm_content=v10&amp;utm_term=%E5%85%8D%E8%B4%B9%E4%B8%8B%E8%BD%BD" target="_blank"><img width="468" height="60" src="./数据预处理练习_files/35695-20161213142353073-1602158633.jpg" alt=""></a></div>
+<div id="under_post_kb"><div class="itnews c_ad_block" id="kb_block"><b>最新知识库文章</b>:<br><div id="kb_recent"> ·  <a href="http://kb.cnblogs.com/page/558087/" target="_blank">高质量的工程代码为什么难写</a><br> ·  <a href="http://kb.cnblogs.com/page/555750/" target="_blank">循序渐进地代码重构</a><br> ·  <a href="http://kb.cnblogs.com/page/554496/" target="_blank">技术的正宗与野路子</a><br> ·  <a href="http://kb.cnblogs.com/page/553682/" target="_blank">陈皓：什么是工程师文化？</a><br> ·  <a href="http://kb.cnblogs.com/page/551422/" target="_blank">没那么难，谈CSS的设计模式</a><br></div>» <a href="http://kb.cnblogs.com/" target="_blank">更多知识库文章...</a></div></div>
+<div id="HistoryToday" class="c_ad_block"></div>
+<script type="text/javascript">
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+</div>
+<div id="leftcontent">
+	
+		<div id="leftcontentcontainer">
+			
+<!--done-->
+<div class="newsItem">
+	<div id="blog-news"><div id="profile_block">昵称：<a href="http://home.cnblogs.com/u/tornadomeet/">tornadomeet</a><br>园龄：<a href="http://home.cnblogs.com/u/tornadomeet/" title="入园时间：2012-03-03">4年9个月</a><br>粉丝：<a href="http://home.cnblogs.com/u/tornadomeet/followers/">3267</a><br>关注：<a href="http://home.cnblogs.com/u/tornadomeet/followees/">46</a><div id="p_b_follow"><a href="javascript:void(0);" onclick="follow(&#39;dae176a9-cc64-e111-aa3f-842b2b196315&#39;)">+加关注</a></div></div></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="blog-calendar" style=""><table id="blogCalendar" class="Cal" cellspacing="0" cellpadding="0" title="Calendar">
+	<tbody><tr><td colspan="7"><table class="CalTitle" cellspacing="0">
+		<tbody><tr><td class="CalNextPrev"><a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2013/03/01&#39;);return false;">&lt;</a></td><td align="center">2013年4月</td><td class="CalNextPrev" align="right"><a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2013/05/01&#39;);return false;">&gt;</a></td></tr>
+	</tbody></table></td></tr><tr><th class="CalDayHeader" align="center" abbr="日" scope="col">日</th><th class="CalDayHeader" align="center" abbr="一" scope="col">一</th><th class="CalDayHeader" align="center" abbr="二" scope="col">二</th><th class="CalDayHeader" align="center" abbr="三" scope="col">三</th><th class="CalDayHeader" align="center" abbr="四" scope="col">四</th><th class="CalDayHeader" align="center" abbr="五" scope="col">五</th><th class="CalDayHeader" align="center" abbr="六" scope="col">六</th></tr><tr><td class="CalOtherMonthDay" align="center">31</td><td align="center">1</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/02.html"><u>2</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/03.html"><u>3</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/04.html"><u>4</u></a></td><td align="center">5</td><td class="CalWeekendDay" align="center">6</td></tr><tr><td class="CalWeekendDay" align="center">7</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/08.html"><u>8</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09.html"><u>9</u></a></td><td align="center">10</td><td align="center">11</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/12.html"><u>12</u></a></td><td class="CalWeekendDay" align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/13.html"><u>13</u></a></td></tr><tr><td class="CalWeekendDay" align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/14.html"><u>14</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/15.html"><u>15</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/16.html"><u>16</u></a></td><td align="center">17</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/18.html"><u>18</u></a></td><td align="center">19</td><td class="CalWeekendDay" align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/20.html"><u>20</u></a></td></tr><tr><td class="CalWeekendDay" align="center">21</td><td align="center">22</td><td align="center">23</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/24.html"><u>24</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/25.html"><u>25</u></a></td><td align="center">26</td><td class="CalWeekendDay" align="center">27</td></tr><tr><td class="CalWeekendDay" align="center">28</td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/29.html"><u>29</u></a></td><td align="center"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30.html"><u>30</u></a></td><td class="CalOtherMonthDay" align="center">1</td><td class="CalOtherMonthDay" align="center">2</td><td class="CalOtherMonthDay" align="center">3</td><td class="CalOtherMonthDay" align="center">4</td></tr><tr><td class="CalOtherMonthDay" align="center">5</td><td class="CalOtherMonthDay" align="center">6</td><td class="CalOtherMonthDay" align="center">7</td><td class="CalOtherMonthDay" align="center">8</td><td class="CalOtherMonthDay" align="center">9</td><td class="CalOtherMonthDay" align="center">10</td><td class="CalOtherMonthDay" align="center">11</td></tr>
+</tbody></table></div><script type="text/javascript">loadBlogDefaultCalendar();</script><br>
+			<div id="blog-sidecolumn"><div id="sidebar_search" class="sidebar-block">
+<div id="sidebar_search" class="mySearch">
+<h3 class="catListTitle">搜索</h3>
+<div id="sidebar_search_box">
+<div id="widget_my_zzk" class="div_my_zzk"><input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk"></div>
+<div id="widget_my_google" class="div_my_zzk"><input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event)" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk"></div>
+</div>
+</div>
+
+</div><div id="sidebar_shortcut" class="sidebar-block">
+<h3 class="catListTitle">常用链接</h3>
+<ul>
+<li><a href="http://www.cnblogs.com/tornadomeet/p/" title="我的博客的随笔列表">我的随笔</a></li><li><a href="http://www.cnblogs.com/tornadomeet/MyComments.html" title="我发表过的评论列表">我的评论</a></li><li><a href="http://www.cnblogs.com/tornadomeet/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li><li><a href="http://www.cnblogs.com/tornadomeet/RecentComments.html" title="我的博客的评论列表">最新评论</a></li><li><a href="http://www.cnblogs.com/tornadomeet/tag/" title="我的博客的标签列表">我的标签</a></li>
+</ul>
+<div id="itemListLin_con" style="display:none;">
+
+</div></div><div id="sidebar_toptags" class="sidebar-block">
+<h3 class="catListTitle">我的标签</h3>
+<div id="MyTag">
+<ul>
+<li><a href="http://www.cnblogs.com/tornadomeet/tag/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a>(72)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/Deep%20Learning/">Deep Learning</a>(51)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/opencv/">opencv</a>(34)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/%E5%9F%BA%E7%A1%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8Bopencv/">基础学习笔记之opencv</a>(24)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/Android%E5%BC%80%E5%8F%91%E5%8E%86%E7%A8%8B/">Android开发历程</a>(18)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/matlab/">matlab</a>(16)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/reading%20papers/">reading papers</a>(16)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/%E6%80%BB%E7%BB%93%E7%B3%BB%E5%88%97/">总结系列</a>(15)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/Qt%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%B7%AF/">Qt学习之路</a>(14)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/OpenNI/">OpenNI</a>(14)</li><li><a href="http://www.cnblogs.com/tornadomeet/tag/">更多</a></li>
+</ul>
+</div></div><div id="sidebar_categories">
+		<h3 class="catListTitle">随笔分类<span style="font-size:11px;font-weight:normal">(468)</span></h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_0" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/400063.html">Android(19)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_1" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362086.html">ARM</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_2" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362087.html">C/C++(6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_3" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361470.html">CV(47)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_4" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/497607.html">Deep Learning(51)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_5" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361469.html">DIP(7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_6" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/437087.html">Eigen(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_7" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361817.html">FPGA</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_8" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/366103.html">IR(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_9" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/400062.html">Java</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_10" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/416316.html">Kinect(15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_11" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361818.html">Linux(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_12" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361467.html">matlab(17)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_13" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361466.html">OpenCV(57)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_14" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/406166.html">OpenGL(7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_15" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/416317.html">OpenNI(14)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_16" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/379510.html">Paper(8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_17" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/374732.html">Qt(36)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_18" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361814.html">Robot(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_19" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/402881.html">XML(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_20" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361815.html">单片机</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_21" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361816.html">电子设计</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_22" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/599067.html">感悟总结(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_23" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361811.html">机器学习(91)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_24" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/371256.html">计算机网络(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_25" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/375969.html">控制理论(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_26" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361812.html">模式识别(11)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_27" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361819.html">嵌入式</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_28" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361813.html">人工智能(8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_29" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362088.html">神经网络(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_30" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/444797.html">手势识别(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_31" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/426653.html">数据结构(6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_32" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/489160.html">数据挖掘(13)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_33" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/370489.html">数学(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_34" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/362085.html">数字信号处理(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_35" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/361810.html">算法(7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_36" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/366102.html">语音处理(4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_37" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/376567.html">总结(24)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_38" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/370949.html">最优化(2)</a></li>
+			
+				</ul>
+			
+	
+		<h3 class="catListTitle">随笔档案<span style="font-size:11px;font-weight:normal">(252)</span></h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_0" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2014/07.html">2014年7月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_1" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2014/01.html">2014年1月 (6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_2" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/12.html">2013年12月 (3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_3" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/11.html">2013年11月 (7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_4" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/10.html">2013年10月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_5" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/09.html">2013年9月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_6" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/08.html">2013年8月 (6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_7" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/07.html">2013年7月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_8" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/06.html">2013年6月 (5)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_9" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/05.html">2013年5月 (8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_10" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/04.html">2013年4月 (18)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_11" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/03.html">2013年3月 (20)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_12" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/02.html">2013年2月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_13" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2013/01.html">2013年1月 (4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_14" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/12.html">2012年12月 (15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_15" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/11.html">2012年11月 (15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_16" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/10.html">2012年10月 (8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_17" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/09.html">2012年9月 (11)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_18" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/08.html">2012年8月 (24)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_19" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/07.html">2012年7月 (29)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_20" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/06.html">2012年6月 (15)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_21" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/05.html">2012年5月 (14)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_22" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/04.html">2012年4月 (14)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_23" class="listitem" href="http://www.cnblogs.com/tornadomeet/archive/2012/03.html">2012年3月 (22)</a></li>
+			
+				</ul>
+			
+	
+		<h3 class="catListTitle">文章分类</h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_0" class="listitem" href="http://www.cnblogs.com/tornadomeet/category/599066.html">感悟总结</a></li>
+			
+				</ul>
+			
+	
+</div><div id="sidebar_scorerank" class="sidebar-block">
+<h3>积分与排名</h3>
+<ul>
+	<li>
+		积分 -
+		700519
+	</li><li>
+		排名 -
+		120
+	</li>
+</ul>
+</div><div id="sidebar_recentcomments" class="sidebar-block"><div id="recent_comments_wrap">
+<h3 class="catListTitle">最新评论</h3>
+<div class="RecentComment" id="RecentComments">
+	<div id="RecentCommentsBlock"><ul>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html#3578206">1. Re:Deep learning：三十八(Stacked CNN简单介绍)</a></li>
+        <li class="recent_comment_body">您好，“ C3层的每个特征图并不一定是都与S2层的特征图相连接，有可能只与其中的某几个连接”，这里的“某几个”是按什么样的规律呢，您又是如何选择的呢，期待您的回复</li>
+        <li class="recent_comment_author">--勾勒爱之年华</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/05/24/2515980.html#3577217">2. Re:本人常用资源整理(ing...)</a></li>
+        <li class="recent_comment_body">好人！ 厉害！</li>
+        <li class="recent_comment_author">--ZaneWang</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3434651.html#3574399">3. Re:Deep learning：四十八(Contractive AutoEncoder简单理解)</a></li>
+        <li class="recent_comment_body">博主，紧急求教啊，我主要研究故障诊断方面，但是利用CAE提取特征时发现各种类型的故障提取的特征是一样的，所以我的分类精度只有25%，求指教</li>
+        <li class="recent_comment_author">--qiyumeimei</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/16/3024292.html#3573005">4. Re:Deep learning：二十九(Sparse coding练习)</a></li>
+        <li class="recent_comment_body">@wanwan0508你好，请问这个问题你拓扑结构下这个check的错误率过大的问题解决了吗？我按照楼主注释掉规则化中偏移patches均值那一步骤后，如下% Rescale from [-1,1] ......</li>
+        <li class="recent_comment_author">--三山半</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html#3572155">5. Re:Deep learning：三十八(Stacked CNN简单介绍)</a></li>
+        <li class="recent_comment_body">您好，我现在正在仿照DLtoolbox写CNN，工具箱中我采用了您说的“其中打X了的表示两者之间有连接的”，但是在反向BP的时候，该怎么样进行反向BP的传播呢。</li>
+        <li class="recent_comment_author">--勾勒爱之年华</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/19/2694332.html#3571293">6. Re:Qt学习之路_12(简易数据管理系统)</a></li>
+        <li class="recent_comment_body">求源码 1224373565@qq.com</li>
+        <li class="recent_comment_author">--漫步云海</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3434651.html#3568499">7. Re:Deep learning：四十八(Contractive AutoEncoder简单理解)</a></li>
+        <li class="recent_comment_body">@bigiceberg_请问你解决那个求导的问题了吗？是不是用BP算法求残差再求导？...</li>
+        <li class="recent_comment_author">--qiyumeimei</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3434651.html#3568261">8. Re:Deep learning：四十八(Contractive AutoEncoder简单理解)</a></li>
+        <li class="recent_comment_body">你好，我想问一下那个雅克比矩阵是不是只针对编码网络部分？</li>
+        <li class="recent_comment_author">--qiyumeimei</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/22/2975978.html#3560796">9. Re:Deep learning：十三(Softmax Regression)</a></li>
+        <li class="recent_comment_body">损失函数中指示函数"1{.}"写错了吧。。。应该为“0{.}”？<br>损失函数不是应该在预测正确时不惩罚，预测错误时惩罚么。。貌似写反了。</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/28/2420936.html#3560745">10. Re:基础学习笔记之opencv(3)：haartraining生成.xml文件过程</a></li>
+        <li class="recent_comment_body">博主您好，我在生成.vec文件时，出现了pos.txt(1): parse errorDone. Create 0 samples 请问这是什么问题呢？命令如下：-info pos.txt -vec......</li>
+        <li class="recent_comment_author">--zyriris</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/20/2970724.html#3559683">11. Re:Deep learning：九(Sparse Autoencoder练习)</a></li>
+        <li class="recent_comment_body">想请教几个问题，谁能加我的qq：9315387，谢谢！另外，最后显示的是权重w，显示w有什么意义？不如显示特征</li>
+        <li class="recent_comment_author">--admudzl</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html#3557512">12. Re:Deep learning：五十一(CNN的反向求导及练习)</a></li>
+        <li class="recent_comment_body">楼主你好 ufldl上说在更新参数的时候要在20分钟之内 我的程序跑了40分钟 请问有什么最值得优化的地方 或者说最耗时的地方</li>
+        <li class="recent_comment_author">--kimir17</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/19/2970101.html#3557043">13. Re:Deep learning：八(Sparse Autoencoder)</a></li>
+        <li class="recent_comment_body">“其中的参数一般取很小，比如说0.05，也就是小概率发生事件的概率。这说明要求隐含层的每一个节点的输出均值接近0.05”----楼主能帮忙再解释下么，多谢~</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/18/2966041.html#3556597">14. Re:Deep learning：七(基础知识_2)</a></li>
+        <li class="recent_comment_body">楼主您好。<br>请问“隐含层神经元的个数越多则效果会越好”，这个不绝对吧？</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/26/2704046.html#3554242">15. Re:Kinect+OpenNI学习笔记之1(开发环境的建立)</a></li>
+        <li class="recent_comment_body">楼主，你好。我驱动安装成功后的设备管理器处会显示没有kinect motor，请问你上面的说“手动更新驱动程序到指定的安装目录”如何实现。</li>
+        <li class="recent_comment_author">--骋</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/28/2568634.html#3554202">16. Re:Qt学习之路_4(Qt UDP的初步使用)</a></li>
+        <li class="recent_comment_body">@kyww我也出现过这种情况，不过解决了，你现在解决了吗...</li>
+        <li class="recent_comment_author">--彷徨中前行的我</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/14/2959138.html#3553429">17. Re:Deep learning：一(基础知识_1)</a></li>
+        <li class="recent_comment_body">您好，请问文中“牛顿法不需要选择任何参数”怎么理解？？多谢~~</li>
+        <li class="recent_comment_author">--欧麦高德</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/24/2979408.html#3537905">18. Re:Deep learning：十五(Self-Taught Learning练习)</a></li>
+        <li class="recent_comment_body">请问博主，对于这种self taught learning的hiddensize怎么确定？ 我自己用1000个数据试了一下：当hiddensize=200，准确率=90%；当hiddensize = ......</li>
+        <li class="recent_comment_author">--zoey321</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3258122.html#3535043">19. Re:Deep learning：四十一(Dropout简单理解)</a></li>
+        <li class="recent_comment_body">博文里提到的native bayes，应该是naive bayes（朴素贝叶斯）。看了下论文原文，dropout可以看作是bagging的一个特例，博主这里提到的boosting应该是笔误吧，boos......</li>
+        <li class="recent_comment_author">--ChrisZZ</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html#3534132">20. Re:Deep learning：五十一(CNN的反向求导及练习)</a></li>
+        <li class="recent_comment_body">@tornadomeet您好，我想请问一下，怎么换成自己的数据，我想看看效果，希望能指点，谢谢！...</li>
+        <li class="recent_comment_author">--susanwq</li>
+</ul>
+</div>
+</div>
+</div></div><div id="sidebar_topviewedposts" class="sidebar-block"><div id="topview_posts_wrap">
+<h3 class="catListTitle">阅读排行榜</h3>
+<div class="RecentComment" id="TopViewPosts"> 
+	<div id="TopViewPostsBlock"><ul><li><a href="http://www.cnblogs.com/tornadomeet/p/3395593.html">1. 机器学习&amp;数据挖掘笔记_16（常见面试之机器学习算法思想简单梳理）(90263)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html">2. Deep learning：五十一(CNN的反向求导及练习)(65340)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/14/2959138.html">3. Deep learning：一(基础知识_1)(64877)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/27/2984725.html">4. Deep learning：十九(RBM简单理解)(58627)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html">5. Deep learning：三十八(Stacked CNN简单介绍)(57021)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3439503.html">6. Deep learning：四十九(RNN-RBM简单理解)(56823)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3258122.html">7. Deep learning：四十一(Dropout简单理解)(55412)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/22/2975978.html">8. Deep learning：十三(Softmax Regression)(53114)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/26/2834336.html">9. 基础学习笔记之opencv(24)：imwrite函数的使用(53039)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">10. 特征点检测学习_2(surf算法)(52014)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/15/2640754.html">11. opencv源码解析之(6)：hog源码分析(47771)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/20/2970724.html">12. Deep learning：九(Sparse Autoencoder练习)(40946)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/03/2621814.html">13. 目标检测学习_1(用opencv自带hog实现行人检测)(40316)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/15/2398769.html">14. 目标跟踪学习笔记_1(opencv中meanshift和camshift例子的应用)(39272)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/05/24/2515980.html">15. 本人常用资源整理(ing...)(36072)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/22/2651574.html">16. OpenGL_Qt学习笔记之_01(创建一个OpenGL窗口)(34087)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/06/2538695.html">17. 图像分割学习笔记_1(opencv自带meanshift分割例子)(33738)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/06/2673104.html">18. PCA算法学习_1(OpenCV中PCA实现人脸降维)(33316)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/23/2699077.html">19. Qt学习之路_14(简易音乐播放器)(32504)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/22/2411318.html">20. 基础学习笔记之opencv(1)：opencv中facedetect例子浅析(32298)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3261247.html">21. Deep learning：四十二(Denoise Autoencoder简单理解)(32026)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/19/2970101.html">22. Deep learning：八(Sparse Autoencoder)(31754)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/30/2839615.html">23. PCA算法学习_2(PCA理论的matlab实现)(30843)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/28/2568634.html">24. Qt学习之路_4(Qt UDP的初步使用)(29255)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/13/3018393.html">25. Deep learning：二十六(Sparse coding简单理解)(29162)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/16/2643168.html">26. 特征点检测学习_1(sift算法)(29156)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3009830.html">27. Deep learning：二十三(Convolution和Pooling练习)(28045)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/15/2961660.html">28. Deep learning：二(linear regression练习)(27933)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/24/2560261.html">29. 本人部分博客导航(ing...)(27599)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/23/2413363.html">30. HMM学习笔记_1(从一个实例中学习DTW算法)(27131)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/06/2756361.html">31. 一些知识点的初步理解_7(随机森林,ing...)(26050)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/19/2694332.html">32. Qt学习之路_12(简易数据管理系统)(25828)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/30/2571001.html">33. Qt学习之路_5(Qt TCP的初步使用)(25189)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/26/2982694.html">34. Deep learning：十八(关于随机采样)(23680)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/28/2420936.html">35. 基础学习笔记之opencv(3)：haartraining生成.xml文件过程(23663)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415583.html">36. HMM学习笔记_2(从一个实例中学习HMM前向算法)(23535)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/08/2384843.html">37. opencv源码解析之(3)：特征点检查前言1(23233)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/16/2963919.html">38. Deep learning：四(logistic regression练习)(23108)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/23/2783709.html">39. 基础学习笔记之opencv(18)：kmeans函数使用实例(22403)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/19/2646412.html">40. 目标跟踪学习笔记_5(opencv中kalman点跟踪例子)(22179)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap">
+<h3 class="catListTitle">评论排行榜</h3>
+<div class="RecentComment" id="TopCommentsPosts">
+	<div id="TopFeedbackPostsBlock"><ul><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/20/2970724.html">1. Deep learning：九(Sparse Autoencoder练习)(98)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3011209.html">2. Deep learning：二十四(stacked autoencoder练习)(77)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html">3. Deep learning：三十五(用NN实现数据降维练习)(73)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/23/2977621.html">4. Deep learning：十四(Softmax Regression练习)(70)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/16/3024292.html">5. Deep learning：二十九(Sparse coding练习)(66)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/04/2753185.html">6. Kinect+OpenNI学习笔记之12(简单手势所表示的数字的识别)(57)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/24/2979408.html">7. Deep learning：十五(Self-Taught Learning练习)(55)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/28/2420936.html">8. 基础学习笔记之opencv(3)：haartraining生成.xml文件过程(53)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3009830.html">9. Deep learning：二十三(Convolution和Pooling练习)(53)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html">10. Deep learning：三十八(Stacked CNN简单介绍)(53)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html">11. Deep learning：五十一(CNN的反向求导及练习)(44)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415889.html">12. HMM学习笔记_3(从一个实例中学习Viterbi算法)(38)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/08/2384843.html">13. opencv源码解析之(3)：特征点检查前言1(32)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/10/18/2728896.html">14. Kinect+OpenNI学习笔记之8(Robert Walter手部提取代码的分析)(32)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">15. 特征点检测学习_2(surf算法)(31)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/22/2411318.html">16. 基础学习笔记之opencv(1)：opencv中facedetect例子浅析(31)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/10/19/2730891.html">17. Kinect+OpenNI学习笔记之9(不需要骨骼跟踪的人体手部分割)(30)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/15/2640754.html">18. opencv源码解析之(6)：hog源码分析(29)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/08/3007435.html">19. Deep learning：二十二(linear decoder练习)(29)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3874378.html">20. 告别学生时代(28)</a></li></ul></div>
+</div></div></div><div id="sidebar_topdiggedposts" class="sidebar-block"><div id="topdigg_posts_wrap">
+<h3 class="catListTitle">推荐排行榜</h3>
+<div class="RecentComment">
+	<div id="TopDiggPostsBlock"><ul><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/05/24/2515980.html">1. 本人常用资源整理(ing...)(36)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3395593.html">2. 机器学习&amp;数据挖掘笔记_16（常见面试之机器学习算法思想简单梳理）(25)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/14/2959138.html">3. Deep learning：一(基础知识_1)(18)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/15/2640754.html">4. opencv源码解析之(6)：hog源码分析(16)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/05/3061457.html">5. Deep learning：三十八(Stacked CNN简单介绍)(11)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/24/2560261.html">6. 本人部分博客导航(ing...)(11)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/30/3052349.html">7. Deep learning：三十五(用NN实现数据降维练习)(8)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/04/2753185.html">8. Kinect+OpenNI学习笔记之12(简单手势所表示的数字的识别)(8)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3258122.html">9. Deep learning：四十一(Dropout简单理解)(7)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/12/2766458.html">10. 龙星计划机器学习笔记(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/23/2699077.html">11. Qt学习之路_14(简易音乐播放器)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/22/2698337.html">12. Qt学习之路_13(简易俄罗斯方块)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/19/2694332.html">13. Qt学习之路_12(简易数据管理系统)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/17/2644903.html">14. 特征点检测学习_2(surf算法)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3468450.html">15. Deep learning：五十一(CNN的反向求导及练习)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/06/02/2531565.html">16. 前景检测算法_3(GMM)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/15/2398769.html">17. 目标跟踪学习笔记_1(opencv中meanshift和camshift例子的应用)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415889.html">18. HMM学习笔记_3(从一个实例中学习Viterbi算法)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/04/12/2443993.html">19. 初步体验libsvm用法1(官方自带工具)(6)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/24/2415583.html">20. HMM学习笔记_2(从一个实例中学习HMM前向算法)(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/27/2420088.html">21. 基础学习笔记之opencv(2)：haartraining前将统一图片尺寸方法(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/20/2408086.html">22. Matlab DIP(瓦)ch9形态学图像处理(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/16/2643168.html">23. 特征点检测学习_1(sift算法)(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3874378.html">24. 告别学生时代(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3276753.html">25. 机器学习&amp;数据挖掘笔记_14（GMM-HMM语音识别简单理解）(5)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/p/3439503.html">26. Deep learning：四十九(RNN-RBM简单理解)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/09/27/2706417.html">27. Kinect+OpenNI学习笔记之2(获取kinect的颜色图像和深度图像)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/11/09/2763271.html">28. 基础学习笔记之opencv(16)：grabcut使用例程(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/30/2839615.html">29. PCA算法学习_2(PCA理论的matlab实现)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/03/15/2961660.html">30. Deep learning：二(linear regression练习)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/12/2813939.html">31. 基础学习笔记之opencv(23)：OpenCV坐标体系的初步认识(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/12/04/2800701.html">32. 基础学习笔记之opencv(20)：OpenCV中的颜色空间(ing...)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/03/23/2413363.html">33. HMM学习笔记_1(从一个实例中学习DTW算法)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/08/03/2621814.html">34. 目标检测学习_1(用opencv自带hog实现行人检测)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/07/31/2616180.html">35. Qt学习之路_8(Qt中与文件目录相关操作)(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/06/15/3137239.html">36. 机器学习&amp;数据挖掘笔记_11（高斯过程回归）(4)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/06/14/3135380.html">37. 机器学习&amp;数据挖掘笔记_10（高斯过程简单理解）(3)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/05/07/3065953.html">38. Deep learning：三十九(ICA模型练习)(3)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2013/04/09/3009830.html">39. Deep learning：二十三(Convolution和Pooling练习)(3)</a></li><li><a href="http://www.cnblogs.com/tornadomeet/archive/2012/07/30/2615913.html">40. Qt学习之路_7(线性布局和网格布局初步探索)(3)</a></li></ul></div>
+</div></div></div></div><script type="text/javascript">loadBlogSideColumn();</script></div>
+	
+</div>
+
+<!--done-->
+<div class="footer">
+	Powered by: <a href="http://www.cnblogs.com/">博客园</a>	模板提供：<a href="http://blog.hjenglish.com/">沪江博客</a>
+	Copyright ©2016 tornadomeet
+</div>
+
+
+
+<!--PageEndHtml Block Begin-->
+阿萨德发斯蒂芬
+<!--PageEndHtml Block End-->
+
+
+</body></html>
